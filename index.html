@@ -1,0 +1,81 @@
+<html>
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0" id="viewport">
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/styles/main.css">
+    <link rel="stylesheet" href="assets/styles/chat.css">
+
+    <title>FastVR</title>
+
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>    
+    <script src="//media.twiliocdn.com/sdk/js/video/v1/twilio-video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script> 
+    <script type="module" src="./src/main.js" crossorigin></script>
+
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="users"></div>
+
+    <div id="loading"></div>
+
+    <div id="instructions">
+        <div class="window">
+            <div class="title">Welcome, <span class="username"></span></div>
+            <div class="content">
+                <div class="avatar-icon"></div>
+                <p>
+                    ↑: W or Up arrow<br>
+                    ↓：S or Down arrow<br>
+                    🔄：A / D or Left/Right arrows<br>
+                    ↔：Q/E
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui">
+
+        <div class="avatar-icon avatar-change"></div>
+
+        <div id="avatar-selection" class="window">
+            <div class="title">Avatar selection<span class="close"><i class="fa fa-times"></i></span></div>
+            <div class="content">
+                <div clas="upload">
+                    <!--<div class="item">
+                        <label>Paste avatar URL</label>
+                        <input type="url" class="avatar-url"><button type="button" class="avatar-url-btn">Change</button>
+                    </div>-->
+                    <!--<p>OR</p>
+                    <div class="item">
+                        <label>Upload avatar from your PC</label>
+                        <input type="file" class="avatar-upload" format=".png,.jpg,.gif">
+                    </div>-->
+                </div>
+                <div class="avatars clearfix"></div>
+            </div>
+        </div>
+
+        <div id="chat">
+            <div class="messages-cont">
+                <div class="messages"></div>
+                <div class="message template"></div>
+            </div>
+            <div class="input-area">
+                <textarea maxlength="200"></textarea>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button type="button" id="toggle-mute" class="voice">
+                <i class="mute fa fa-microphone"></i>
+                <i class="unmute fa fa-microphone-slash"></i>
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>
