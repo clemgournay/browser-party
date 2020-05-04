@@ -7,15 +7,11 @@ class Controls {
     }
 
     init() {
-        $('#instructions').on('click', () => {
-            $('#instructions').fadeOut();
-            $('#ui').fadeIn();
-            this.start();
-        });
+        this.keyboard();
         
     }
 
-    start() {
+    keyboard() {
         $(document).on('keydown', (e) => {
             if (!this.lockState) this.onKeyDown(e);
         });

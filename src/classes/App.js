@@ -10,7 +10,6 @@ class App {
 
     constructor () {
         this.roomname = 'fastVR';
-        this.username = prompt('Enter your username:');
         this.mainUser = new MainUser(this.username);
         this.room = new Room(this);
         this.sync = new Sync(this);
@@ -24,11 +23,11 @@ class App {
         this.room.build();
         this.update();
         this.UI.init();
-        this.voice.connect(this.mainUser.name, this.roomname);
+        /*this.voice.connect(this.mainUser.name, this.roomname);
         this.sync.connect(this.mainUser, (users) => {
             this.setUsers(users);
             this.chat.connect();
-        });
+        });*/
     }
 
     update() {
@@ -58,17 +57,6 @@ class App {
     moveUser(id, position) {
         this.users[id].position = position;
         this.room.moveCharacter(id, position);
-    }
-
-    rotateUser(id, rotation) {
-        this.users[id].rotation = rotation;
-        this.room.rotateCharacter(id, rotation);
-    }
-
-    updateUserAvatar(id, avatarID) {
-        const url = './assets/avatars/' + avatarID + '.png';
-        this.users[id].updateAvatar(URL);
-        this.room.updateAvatar(this.users[id]);
     }
 
     removeUser(id) {

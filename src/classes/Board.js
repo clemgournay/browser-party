@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three/three.module.js';
-import { OBJLoader } from '../vendor/three/loaders/OBJLoader.js';
+import { FBXLoader } from '../vendor/three/loaders/FBXLoader.js';
 import { Controls } from './Controls.js';
 
 class Room {
@@ -9,7 +9,6 @@ class Room {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1100);
         this.scene = new THREE.Scene();
         this.controls = new Controls();
-        this.loader = new OBJLoader();
         this.textureLoader = new THREE.TextureLoader();
         this.fontLoader = new THREE.FontLoader();
         this.roomOBJ = new THREE.Group();
@@ -29,12 +28,7 @@ class Room {
         this.controls.init();
 
         this.buildLights();
-        this.buildRoomOBJ();
-
-        this.fontLoader.load('assets/fonts/helvetiker.json', (font) => {
-            this.font = font;
-            this.newCharacter(this.app.mainUser);
-        });
+        this.buildBoardOBJ();
 
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -54,143 +48,27 @@ class Room {
         this.scene.add(light);
     }
 
-    buildRoomOBJ() {
+    buildBoardOBJ() {
 
-        /*this.textureLoader.load(
-            'assets/textures/metal.jpg',
-            (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-                texture.repeat.set(20, 20);
-                const material = new THREE.MeshBasicMaterial( {
-                    map: texture, side: THREE.DoubleSide
-                });*/
-                const material = new THREE.MeshToonMaterial({color: 'grey', side: THREE.DoubleSide});
-                const geometry = new THREE.PlaneGeometry(100, 100, 10, 10);
-                const floor = new THREE.Mesh(geometry, material);
-                floor.rotation.x = Math.PI / 2;
-                this.scene.add(floor);
-            /*},
-            undefined,
-            (err) => {
-                console.error('An error happened.');
-            }
-        );*/
-
-        this.buildWall('front');
-        this.buildWall('back');
-        this.buildWall('left');
-        this.buildWall('right');
-
-        const matRoof = new THREE.MeshToonMaterial({color: 0xffffff, side: THREE.DoubleSide});
-        const geoRoof = new THREE.PlaneGeometry(100, 100, 10, 10);
-        const roof = new THREE.Mesh(geoRoof, matRoof);
-        roof.name = 'roof';
-        roof.rotation.x = Math.PI / 2;
-        roof.position.y = 15;
-        this.scene.add(roof);
-
-        this.loader.load(
-            'assets/models/table.obj',
-            (obj) => {
-                obj.traverse((child) => {
-                    if (child instanceof THREE.Mesh) {
-                        child.material = new THREE.MeshToonMaterial({color: 'orange'});
-                        const outline = child.clone();
-                        outline.scale.set(1.02, 1.02, 1.02);
-                        outline.material = new THREE.MeshBasicMaterial({color: 'black', side: THREE.BackSide});
-                        obj.add(outline);
-                        this.colliders.push(child);
-                    }
-                });
-                obj.scale.set(1.5, 1.5, 1.5);
-                obj.position.set(0, 0.1, 0);
-                obj.name = 'table';
-                this.scene.add(obj);
-            },
-            (xhr) => {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-            },
-            (error) => {
-                console.log('An error happened');
-            }
-        );
-    }
-
-    buildWall(side) {
-        let geo, pos;
-        const mat = new THREE.MeshToonMaterial({color: 0xffffff});
-        switch(side) {
-            case 'front':
-                geo = new THREE.BoxGeometry(100, 20, 2);
-                pos = new THREE.Vector3(0, 5, -50);
-                break;
-            case 'back':
-                geo = new THREE.BoxGeometry(100, 20, 2);
-                pos = new THREE.Vector3(0, 5, 50);
-                break;
-            case 'left':
-                geo = new THREE.BoxGeometry(2, 20, 100);
-                pos = new THREE.Vector3(-50, 5, 0);
-                break;
-            case 'right':
-                geo = new THREE.BoxGeometry(2, 20, 100);
-                pos = new THREE.Vector3(50, 5, 0);
-                break;
-        }
-        const wall = new THREE.Mesh(geo, mat);
-        wall.position.set(pos.x, pos.y, pos.z);
-        wall.name = 'wall-' + side;
-        this.scene.add(wall);
-
-        this.colliders.push(wall);
+        const material = new THREE.MeshToonMaterial({color: 'grey', side: THREE.DoubleSide});
+        const geometry = new THREE.PlaneGeometry(100, 100, 10, 10);
+        const floor = new THREE.Mesh(geometry, material);
+        floor.rotation.x = Math.PI / 2;
+        this.scene.add(floor);
     }
 
     newCharacter(user) {
         const isMain = (user.constructor.name === 'MainUser');
         const character = new THREE.Group();
 
-        this.textureLoader.load(user.avatar, (texture) => {
-            const material = new THREE.MeshToonMaterial({
-                map: texture
-            });
-            const geometry = new THREE.BoxGeometry(2, 2, 2);
-            const mesh = new THREE.Mesh(geometry, material);
-            character.add(mesh);
+        const material = new THREE.MeshToonMaterial({
+            color: 'grey'
         });
-        
-        const outGeo = new THREE.BoxGeometry(2.1, 2.1, 2.1);
-        const outMat = new THREE.MeshBasicMaterial({color : 0x0000000, side: THREE.BackSide});
-        const outline = new THREE.Mesh(outGeo, outMat);
-        character.add(outline);
-        
-        const textGeo = new THREE.TextGeometry(user.name, {
-            font: this.font,
-            size: 0.2,
-            height: 0.2,
-            curveSegments: 5,
-            bevelEnabled: false,
-            bevelThickness: 0.1,
-            bevelSize: 0.1,
-            bevelSegments: 0.1
-        } );
-        const txtMat = new THREE.MeshToonMaterial({color: 'white'});
-        const txtMesh = new THREE.Mesh(textGeo, txtMat);
-        const box = new THREE.Box3().setFromObject(txtMesh);
-        const size = box.getSize();
-        txtMesh.translateX(-(size.x / 2));
-        txtMesh.translateZ(1);
-        txtMesh.translateY(1.2);
-
-        const txtOut = txtMesh.clone();
-        txtOut.material = new THREE.MeshBasicMaterial({color: 'black', side: THREE.BackSide});
-        txtOut.scale.set(1.05, 1.05, 1.05);
-        txtOut.translateX(-0.02);
-        
-        character.add(txtMesh);
-        character.add(txtOut);
+        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        const mesh = new THREE.Mesh(geometry, material);
+        character.add(mesh);
 
         character.name = user.id;
-        character.position.set(user.initPos.x, user.initPos.y, user.initPos.z);
         this.scene.add(character);
 
         if (isMain) {
@@ -199,16 +77,6 @@ class Room {
             this.characters[user.id] = character;
         }
         
-    }
-
-    updateAvatar(user) {
-        this.textureLoader.load(user.avatar, (texture) => {
-            const character = this.scene.getObjectByName(user.id);
-            const material = new THREE.MeshToonMaterial({
-                map: texture
-            });
-            character.children[0].material = material;
-        });
     }
 
     moveCharacter(id, position) {
@@ -349,4 +217,4 @@ class Room {
 
 }
 
-export { Room };
+export { Board };
