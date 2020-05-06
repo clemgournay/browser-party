@@ -2,8 +2,8 @@ import { API_URL } from '../environment.js';
 
 class Voice {
 
-    constructor(app) {
-        this.app = app;
+    constructor(game) {
+        this.game = game;
         this.roomname = null;
         this.username = null;
         this.room = null;

@@ -1,46 +1,48 @@
-import { Room } from './Room.js';
-import { User } from './User.js';
-import { MainUser } from './MainUser.js'; 
+import { Board } from './Board.js';
+import { Player } from './Player.js';
+import { MainPlayer } from './MainPlayer.js'; 
 import { Voice } from './Voice.js'; 
 import { Sync } from './Sync.js';
 import { Chat } from './Chat.js';
 import { UI } from './UI.js';
 
-class App {
+class Game {
 
     constructor () {
-        this.roomname = 'fastVR';
-        this.mainUser = new MainUser(this.username);
+        this.board = new Board(this);
+        this.mainPlayer = new MainPlayer(this);
+        /*this.roomname = 'fastVR';
+        this.mainPlayer = new MainPlayer(this.username);
         this.room = new Room(this);
         this.sync = new Sync(this);
         this.voice = new Voice(this);
         this.chat = new Chat(this);
         this.UI = new UI(this);
-        this.users = {};
+        this.players = {};*/
     }
 
     init() {
-        this.room.build();
+        this.board.build();
         this.update();
-        this.UI.init();
-        /*this.voice.connect(this.mainUser.name, this.roomname);
-        this.sync.connect(this.mainUser, (users) => {
+        /*this.UI.init();
+        this.voice.connect(this.mainPlayer.name, this.roomname);
+        this.sync.connect(this.mainPlayer, (users) => {
             this.setUsers(users);
             this.chat.connect();
         });*/
     }
 
     update() {
-        this.room.update();
+        this.board.update();
         window.requestAnimationFrame(() => {
             this.update();
         });
     }
 
-    setUsers(users) {
+    /*setUsers(users) {
         for (var id in users) {
             const user = users[id];
-            if (id !== this.mainUser.id) {
+            if (id !== this.mainPlayer.id) {
                 this.newUser(id, user);
             }
         } 
@@ -65,21 +67,17 @@ class App {
     }
 
     updatePosition(position) {
-        this.mainUser.position = position;
+        this.mainPlayer.position = position;
         this.sync.updatePosition(position);
     }
 
     updateRotation(rotation) {
-        this.mainUser.rotation = rotation;
+        this.mainPlayer.rotation = rotation;
         this.sync.updateRotation(rotation);
     }
-
-    updateAvatar(URL) {
-        this.mainUser.updateAvatar(URL);
-        this.sync.updateAvatar(URL);
-    }
+*/
 
 
 }
 
-export { App };
+export { Game };

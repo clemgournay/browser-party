@@ -1,34 +1,43 @@
 import * as THREE from '../vendor/three/three.module.js';
 import { FBXLoader } from '../vendor/three/loaders/FBXLoader.js';
+
 import { Controls } from './Controls.js';
 
-class Room {
+class Board {
     
-    constructor(app) {
-        this.app = app;
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1100);
+    constructor(game) {
+        this.game = game;
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1000);
         this.scene = new THREE.Scene();
         this.controls = new Controls();
-        this.textureLoader = new THREE.TextureLoader();
-        this.fontLoader = new THREE.FontLoader();
         this.roomOBJ = new THREE.Group();
-        this.font = null;
         this.mainCharacter = new THREE.Group();
         this.characters = {};
         this.raycaster = null;
         this.colliders = [];
         this.collisions = [];
         this.clock = new THREE.Clock();
-        this.speed = 15;
-        this.rotateSpeed = 2;
+        this.FBXLoader = new FBXLoader();
+        this.cases = [];
+        this.currentCase = 0;
+        this.score = 1;
+        this.distance = new THREE.Vector3();
     }
 
     build() {
 
-        this.controls.init();
+        //this.controls.init();
 
         this.buildLights();
         this.buildBoardOBJ();
+        this.buildCase(9.9, 1, 6.9);
+        this.buildCase(9.9, 1, 4.9);
+
+        const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const mat = new THREE.MeshLambertMaterial({color: 'lightblue'});
+        this.mainCharacter = new THREE.Mesh(geo, mat);
+        this.mainCharacter.position.set(10, 1.5, 8);
+        this.scene.add(this.mainCharacter);
 
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -36,6 +45,19 @@ class Room {
         document.body.appendChild(this.renderer.domElement);
 
         this.events();
+
+        this.moveToNextCase();
+    }
+
+    moveToNextCase() {
+        const currentPosition = this.mainCharacter.position;
+        const nextCase = this.cases[this.currentCase];
+        this.distance = new THREE.Vector3(
+            nextCase.position.x - currentPosition.x+0.1,
+            nextCase.position.y - currentPosition.y+0.5,
+            nextCase.position.z - currentPosition.z
+        );
+        console.log(this.distance);
     }
 
     buildLights() {
@@ -50,15 +72,28 @@ class Room {
 
     buildBoardOBJ() {
 
-        const material = new THREE.MeshToonMaterial({color: 'grey', side: THREE.DoubleSide});
-        const geometry = new THREE.PlaneGeometry(100, 100, 10, 10);
-        const floor = new THREE.Mesh(geometry, material);
-        floor.rotation.x = Math.PI / 2;
-        this.scene.add(floor);
+        this.FBXLoader.load('./assets/models/Board.fbx', (obj) => {
+            obj.traverse((child) => {
+                child.castShadows = true;
+                child.receiveShadows = true;
+            });
+            obj.rotation.y = Math.PI;
+            this.scene.add(obj);
+        })
+    }
+
+    buildCase(x, y, z) {
+        const geo = new THREE.SphereGeometry(0.3, 32, 32);
+        const mat = new THREE.MeshLambertMaterial({color: 'blue'});
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.scale.set(1, 0.3, 1);
+        mesh.position.set(x, y, z);
+        this.cases.push(mesh);
+        this.scene.add(mesh);
     }
 
     newCharacter(user) {
-        const isMain = (user.constructor.name === 'MainUser');
+        const isMain = (user.constructor.name === 'mainPlayer');
         const character = new THREE.Group();
 
         const material = new THREE.MeshToonMaterial({
@@ -118,6 +153,22 @@ class Room {
     update() {
 
         const delta = this.clock.getDelta();
+
+        const x = Math.abs(parseFloat(this.distance.x).toFixed(1));
+        const y = Math.abs(parseFloat(this.distance.y).toFixed(1));
+        const z = Math.abs(parseFloat(this.distance.z).toFixed(1));
+
+        if (x !== 0 || y !== 0 || z !== 0) {
+
+            this.mainCharacter.translateX(this.distance.x * delta * 2);
+            this.mainCharacter.translateY(this.distance.y * delta * 2);
+            this.mainCharacter.translateZ(this.distance.z * delta * 2);
+            this.moveToNextCase();
+        }
+
+
+        //this.orbitCtrls.update();
+        /*const delta = this.clock.getDelta();
 	    const moveDistance = this.speed * delta;
         const rotateAngle = (Math.PI/2) * this.rotateSpeed * delta;
 
@@ -151,10 +202,10 @@ class Room {
                 this.mainCharacter.updateMatrixWorld();
                 if (this.collides()) this.mainCharacter.rotateOnAxis(new THREE.Vector3(0,1,0), -rotateAngle);
 
-                const rotation = this.app.mainUser.rotation;
+                const rotation = this.game.mainPlayer.rotation;
                 const currentRotation = this.mainCharacter.rotation.y;
                 if (rotation !== currentRotation) {
-                    this.app.updateRotation(-rotateAngle);
+                    this.game.updateRotation(-rotateAngle);
                 }
 
             }
@@ -164,10 +215,10 @@ class Room {
                 this.mainCharacter.updateMatrixWorld();
                 if (this.collides()) this.mainCharacter.rotateOnAxis(new THREE.Vector3(0,1,0), rotateAngle);
 
-                const rotation = this.app.mainUser.rotation;
+                const rotation = this.game.mainPlayer.rotation;
                 const currentRotation = this.mainCharacter.rotation.y;
                 if (rotation !== currentRotation) {
-                    this.app.updateRotation(rotateAngle);
+                    this.game.updateRotation(rotateAngle);
                 }
             }
 
@@ -177,9 +228,9 @@ class Room {
                 const rad = (value * (Math.PI/8)) / maxValue;
                 this.mainCharacter.rotateOnAxis(new THREE.Vector3(0,1,0), rad);
             }
-        }
-        
-        const relativeCameraOffset = new THREE.Vector3(0,2,5);
+        }*/
+
+        const relativeCameraOffset = new THREE.Vector3(1, 2, 1);
 
         const cameraOffset = relativeCameraOffset.applyMatrix4(this.mainCharacter.matrixWorld);
 
@@ -190,14 +241,14 @@ class Room {
 
         this.renderer.render(this.scene, this.camera);
 
-        var x = this.mainCharacter.position.x;
+        /*var x = this.mainCharacter.position.x;
         var y = this.mainCharacter.position.y;
         var z = this.mainCharacter.position.z;
 
-        const pos = this.app.mainUser.position;
+        /*const pos = this.game.mainPlayer.position;
         if (x !== pos.x || y !== pos.y || z !== pos.z) {
-            this.app.updatePosition({x: x, y: y, z: z});
-        }
+            this.game.updatePosition({x: x, y: y, z: z});
+        }*/
 
         
         

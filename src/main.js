@@ -1,6 +1,6 @@
-import { App } from './classes/App.js';
+import { Game } from './classes/Game.js';
 
 window.onload = function () {
-    const fastVR = new App();
-    fastVR.init();
+    const browserParty = new Game();
+    browserParty.init();
 }

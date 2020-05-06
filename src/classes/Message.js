@@ -1,7 +1,7 @@
 class Message {
 
     constructor(app, id, author, date, content) {
-        this.app = app;
+        this.game = game;
         this.id = id;
         this.tempID = (this.id === null) ? this.generateID() : '';
         this.$dom = $('#chat .template').clone().removeClass('template');
@@ -19,7 +19,7 @@ class Message {
             this.$dom.removeClass('temp');
         }
         this.$dom.attr('title', this.getDateStr());
-        if (this.author.id === this.app.mainUser.id) this.$dom.addClass('me');
+        if (this.author.id === this.game.mainPlayer.id) this.$dom.addClass('me');
         const message = this.author.name + ' : ' + this.content;
         this.$dom.html(message);
         $('#chat .messages').append(this.$dom);

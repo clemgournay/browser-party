@@ -2,8 +2,8 @@ import { API_URL } from '../environment.js';
 
 class Sync {
 
-    constructor(app) {
-        this.app = app;
+    constructor(game) {
+        this.game = game;
         this.userID = null;
         this.username = null;
         this.position = null;
@@ -28,24 +28,24 @@ class Sync {
 
         this.socket.on('user logged in', (e) => {
             console.log('User logged in: ' + e.id)
-            this.app.newUser(e.id, e.user);
+            this.game.newUser(e.id, e.user);
         });
 
         this.socket.on('user moved', (e) => {
-            this.app.moveUser(e.id, e.position);
+            this.game.moveUser(e.id, e.position);
         });
 
         this.socket.on('user rotated', (e) => {
-            this.app.rotateUser(e.id, e.rotation);
+            this.game.rotateUser(e.id, e.rotation);
         });
 
         this.socket.on('avatar updated', (e) => {
-            this.app.updateUserAvatar(e.id, e.avatar);
+            this.game.updateUserAvatar(e.id, e.avatar);
         })
 
         this.socket.on('user left', (id) => {
             console.log('user left: ' + id);
-            this.app.removeUser(id);
+            this.game.removeUser(id);
         });
         
     }

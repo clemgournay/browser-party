@@ -1,7 +1,7 @@
 class UI {
 
-    constructor(app) {
-        this.app = app;\
+    constructor(game) {
+        this.game = game;
     }
 
     init () {

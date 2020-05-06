@@ -2,19 +2,19 @@ import { Message } from './Message.js';
 
 class Chat {
 
-    constructor (app) {
-        this.app = app;
+    constructor (game) {
+        this.game = game;
         this.socket = null;
         this.messages = [];
     }
 
     connect() {
-        this.socket = this.app.sync.socket;
+        this.socket = this.game.sync.socket;
         
         this.socket.on('chat messages', (messages) => {
             this.messages = messages;
             this.messages.forEach(msg => {
-                const message = new Message(this.app, msg.id, msg.author, msg.date, msg.content);
+                const message = new Message(this.game, msg.id, msg.author, msg.date, msg.content);
                 this.messages.push(message);
                 message.show();
             });
@@ -25,14 +25,14 @@ class Chat {
         });
 
         this.socket.on('chat sent', (msg) => {
-            if (msg.author.id === this.app.mainUser.id) {
+            if (msg.author.id === this.game.mainPlayer.id) {
                 const index = this.getTempMessageIndex(msg.tempID);
                 const message = this.messages[index];
                 message.id = msg.id;
                 message.date = msg.date;
                 message.updateView();
             } else {
-                const message = new Message(this.app, msg.id, msg.author, msg.date, msg.content);
+                const message = new Message(this.game, msg.id, msg.author, msg.date, msg.content);
                 this.messages.push(message);
                 message.show();
                 this.scrollToLastMessage();
@@ -49,7 +49,7 @@ class Chat {
                 let val = $('#chat textarea').val();
                 if (val.length > 0) {
                     val = val.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    const message = new Message(this.app, null, {id: this.app.mainUser.id, name: this.app.mainUser.name}, new Date(), val);
+                    const message = new Message(this.game, null, {id: this.game.mainPlayer.id, name: this.game.mainPlayer.name}, new Date(), val);
                     this.messages.push(message);
                     message.show(true);
                     this.socket.emit('chat send', {tempID: message.tempID, content: val});
@@ -59,10 +59,10 @@ class Chat {
             }
         });
         $('#chat textarea').on('focus', (e) => {
-            this.app.room.controls.lock();
+            this.game.room.controls.lock();
         })
         $('#chat textarea').on('blur', (e) => {
-            this.app.room.controls.unlock();
+            this.game.room.controls.unlock();
         })
     }
 
