@@ -1,6 +1,7 @@
 class Controls {
 
-    constructor() {
+    constructor(game) {
+        this.game = game;
         this.isMobile = this.checkMobile();
         this.actions = {};
         this.lockState = false;
@@ -12,24 +13,11 @@ class Controls {
     }
 
     keyboard() {
-        $(document).on('keydown', (e) => {
-            if (!this.lockState) this.onKeyDown(e);
-        });
-        $(document).on('keyup', (e) => {
-            if (!this.lockState) this.onKeyUp(e);
+
+        $(document).on('keypress', (e) => {
+            if (!this.lockState) this.onKeyPress(e);
         });
 
-        $(document).on('mousedown', (e) => {
-            if (!this.lockState) this.onMouseDown(e);
-        });
-
-        $(document).on('mousemove', (e) => {
-            if (!this.lockState) this.onMouseMove(e); 
-        });
-
-        $(document).on('mouseup', (e) => {
-            if (!this.lockState) this.onMouseUp(e);
-        });
     }
 
     checkMobile() {
@@ -38,105 +26,13 @@ class Controls {
         return check;
     }
 
-    onKeyDown(e) {
+    onKeyPress(e) {
         switch (e.keyCode) {
-            case 38: // up
-            case 87: // w
-                this.actions.FORWARD = 'keyboard';
-                break;
-
-            case 37: // left
-            case 65: // a
-                this.actions.ROTATE_LEFT = 'keyboard';
-                break;
-
-            case 40: // down
-            case 83: // s
-                this.actions.BACKWARD = 'keyboard';
-                break;
-
-            case 39: // right
-            case 68: // d
-                this.actions.ROTATE_RIGHT = 'keyboard';
-                break;
-
-            case 81: // q
-                this.actions.SLIDE_LEFT = 'keyboard';
-                break;
-
-            case 69: // e
-                this.actions.SLIDE_RIGHT = 'keyboard';
-                break;
-
-
             case 32: // space
-                this.actions.SPACE = 'keyboard';
+                this.game.mainPlayer.rollDice();
                 break;
 
         }
-    }
-
-    onKeyUp(e) {
-        switch (e.keyCode) {
-            case 38: // up
-            case 87: // w
-                delete this.actions.FORWARD;
-                break;
-
-            case 37: // left
-            case 65: // a
-                delete this.actions.ROTATE_LEFT;
-                break;
-
-            case 40: // down
-            case 83: // s
-                delete this.actions.BACKWARD;
-                break;
-
-            case 39: // right
-            case 68: // d
-                delete this.actions.ROTATE_RIGHT;
-                break;
-
-            case 81: // q
-                delete this.actions.SLIDE_LEFT;
-                break;
-
-            case 69: // e
-                delete this.actions.SLIDE_RIGHT;
-                break;
-        }
-    }
-
-    onMouseDown(e) {
-        if (e.which === 1) {
-            this.actions.FORWARD = 'mouse';
-        } else if (e.which === 3) {
-            this.actions.BACKWARD = 'mouse';
-        }
-    }
-
-    onMouseMove(e) {
-        
-        if (this.actions.FORWARD === 'mouse' || this.actions.BACKWARD === 'mouse') {
-            const left = (window.innerWidth /2) - 100;
-            const right = (window.innerWidth /2) + 100;
-        
-            if (e.pageX <= left) {
-                this.actions.ROTATE_VALUE = (left - e.pageX);
-            } else if (e.pageX >= right) {
-                this.actions.ROTATE_VALUE = (right - e.pageX);
-            }
-        }
-    }
-
-    onMouseUp(e) {
-        if (e.which === 1) {
-            delete this.actions.FORWARD;
-        } else if (e.which === 3) {
-            delete this.actions.BACKWARD;
-        }
-        delete this.actions.ROTATE_VALUE;
     }
 
     unlockKey(key) {

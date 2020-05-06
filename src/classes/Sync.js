@@ -19,7 +19,7 @@ class Sync {
         this.avatar = user.avatar;
 
         this.socket = io.connect(API_URL, {
-            query: 'id=' + this.userID + '&name=' + this.username + '&position=' + this.position.x + ',' + this.position.y + ',' + this.position.z + '&avatar=' + this.avatar
+            query: 'id=' + this.userID + '&name=' + this.username + '&position=' + this.position.x + ',' + this.position.y + ',' + this.position.z
         });
 
         this.socket.on('users', (users) => {
@@ -35,14 +35,6 @@ class Sync {
             this.game.moveUser(e.id, e.position);
         });
 
-        this.socket.on('user rotated', (e) => {
-            this.game.rotateUser(e.id, e.rotation);
-        });
-
-        this.socket.on('avatar updated', (e) => {
-            this.game.updateUserAvatar(e.id, e.avatar);
-        })
-
         this.socket.on('user left', (id) => {
             console.log('user left: ' + id);
             this.game.removeUser(id);
@@ -52,14 +44,6 @@ class Sync {
 
     updatePosition(position) {
         if (this.socket) this.socket.emit('position update', {x: position.x, y: position.y, z: position.z});
-    }
-
-    updateRotation(rotation) {
-        if (this.socket) this.socket.emit('rotation update', rotation);
-    }
-
-    updateAvatar(avatar) {
-        if (this.socket) this.socket.emit('avatar update', avatar);
     }
 
 }

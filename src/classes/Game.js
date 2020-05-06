@@ -11,10 +11,7 @@ class Game {
     constructor () {
         this.board = new Board(this);
         this.mainPlayer = new MainPlayer(this);
-        /*this.roomname = 'fastVR';
-        this.mainPlayer = new MainPlayer(this.username);
-        this.room = new Room(this);
-        this.sync = new Sync(this);
+        /*this.sync = new Sync(this);
         this.voice = new Voice(this);
         this.chat = new Chat(this);
         this.UI = new UI(this);
