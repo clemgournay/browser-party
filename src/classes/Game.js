@@ -11,6 +11,7 @@ class Game {
     constructor () {
         this.board = new Board(this);
         this.mainPlayer = new MainPlayer(this);
+        this.diceRolling = true;
         /*this.sync = new Sync(this);
         this.voice = new Voice(this);
         this.chat = new Chat(this);
@@ -19,8 +20,11 @@ class Game {
     }
 
     init() {
-        this.board.build();
-        this.update();
+        this.board.load(() => {
+            this.board.build();
+            this.update();
+        });
+        
         /*this.UI.init();
         this.voice.connect(this.mainPlayer.name, this.roomname);
         this.sync.connect(this.mainPlayer, (users) => {

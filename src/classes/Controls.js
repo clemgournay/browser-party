@@ -29,7 +29,7 @@ class Controls {
     onKeyPress(e) {
         switch (e.keyCode) {
             case 32: // space
-                this.game.mainPlayer.rollDice();
+                this.game.mainPlayer.stopDice();
                 break;
 
         }

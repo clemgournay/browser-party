@@ -10,20 +10,63 @@ class Board {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1000);
         this.scene = new THREE.Scene();
         this.controls = new Controls(this.game);
-        this.roomOBJ = new THREE.Group();
+        this.gameObjects = {};
+        this.textures = {};
         this.mainCharacter = new THREE.Group();
+        this.loader = new THREE.LoadingManager();
         this.characters = {};
-        this.raycaster = null;
-        this.colliders = [];
-        this.collisions = [];
         this.clock = new THREE.Clock();
-        this.FBXLoader = new FBXLoader();
         this.cases = [];
         this.currentCase = 0;
         this.score = 1;
         this.distance = new THREE.Vector3();
         this.finnishedMoveToNextCase = null;
         this.moving = false;
+    }
+
+    load(callback) {
+        this.loader.onStart = (url, itemsLoaded, itemsTotal) => {
+            console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+        }
+
+        this.loader.onLoad = () => {
+            callback();
+        }
+
+        this.loader.onProgress = (url, itemsLoaded, itemsTotal) => {
+            console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+        }
+
+        this.loader.onError = () => {
+            console.log('error')
+        }
+
+        const fbxLoader = new FBXLoader(this.loader);
+        fbxLoader.load('./assets/models/Board.fbx', (obj) => {
+            this.gameObjects.board = obj;
+        });
+
+        this.textures.dice = [];
+        const textureLoader = new THREE.TextureLoader(this.loader);
+        textureLoader.load('./assets/textures/dice/1.png', (texture) => {
+            this.textures.dice.one = texture;
+        });
+        textureLoader.load('./assets/textures/dice/2.png', (texture) => {
+            this.textures.dice.two = texture;
+        });
+        textureLoader.load('./assets/textures/dice/3.png', (texture) => {
+            this.textures.dice.three = texture;
+        });
+        textureLoader.load('./assets/textures/dice/4.png', (texture) => {
+            this.textures.dice.four = texture;
+        });
+        textureLoader.load('./assets/textures/dice/5.png', (texture) => {
+            this.textures.dice.five = texture;
+        });
+        textureLoader.load('./assets/textures/dice/6.png', (texture) => {
+            this.textures.dice.six = texture;
+        });
+
     }
 
     build() {
@@ -46,11 +89,8 @@ class Board {
         this.buildCase(-4.3, 1, 3.9);
         this.buildCase(-5.3, 1, 3.9);
 
-        const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const mat = new THREE.MeshLambertMaterial({color: 'lightblue'});
-        this.mainCharacter = new THREE.Mesh(geo, mat);
-        this.mainCharacter.position.set(10, 1.5, 8);
-        this.scene.add(this.mainCharacter);
+        this.createMainCharacter();
+        this.buildDice();
 
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -59,6 +99,30 @@ class Board {
 
         this.events();
 
+    }
+
+    buildDice() {
+
+        const materials = [
+            new THREE.MeshLambertMaterial({map: this.textures.dice.three}),
+            new THREE.MeshLambertMaterial({map: this.textures.dice.five}),
+            new THREE.MeshLambertMaterial({map: this.textures.dice.one}),
+            new THREE.MeshLambertMaterial({map: this.textures.dice.six}),
+            new THREE.MeshLambertMaterial({map: this.textures.dice.two}),
+            new THREE.MeshLambertMaterial({map: this.textures.dice.four})
+        ];
+        const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+        this.gameObjects.dice = new THREE.Mesh(geo, materials);
+        this.gameObjects.dice.position.set(10, 2.5, 8);
+        this.scene.add(this.gameObjects.dice);
+    }
+
+    createMainCharacter() {
+        const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const mat = new THREE.MeshLambertMaterial({color: 'lightblue'});
+        this.mainCharacter = new THREE.Mesh(geo, mat);
+        this.mainCharacter.position.set(10, 1.5, 8);
+        this.scene.add(this.mainCharacter);
     }
 
 
@@ -73,16 +137,13 @@ class Board {
     }
 
     buildBoardOBJ() {
-
-        this.FBXLoader.load('./assets/models/Board.fbx', (obj) => {
-            obj.traverse((child) => {
-                child.castShadows = true;
-                child.receiveShadows = true;
-                child.material = new THREE.MeshLambertMaterial({color: 'darkgrey'});
-            });
-            obj.rotation.y = Math.PI;
-            this.scene.add(obj);
-        })
+        this.gameObjects.board.traverse((child) => {
+            child.castShadows = true;
+            child.receiveShadows = true;
+            child.material = new THREE.MeshLambertMaterial({color: 'darkgrey'});
+        });
+        this.gameObjects.board.rotation.y = Math.PI;
+        this.scene.add(this.gameObjects.board);
     }
 
     buildCase(x, y, z) {
@@ -142,6 +203,15 @@ class Board {
             }
         }
 
+        if (this.game.diceRolling) {
+            const speedX = Math.floor(Math.random() * 4) + 2;
+            const speedY = Math.floor(Math.random() * 5) + 2;
+            const speedZ = Math.floor(Math.random() * 6) + 2;
+            this.gameObjects.dice.rotation.x += Math.PI * speedX * delta;
+            this.gameObjects.dice.rotation.y += Math.PI * speedY *  delta;
+            this.gameObjects.dice.rotation.z += Math.PI * speedZ * delta;
+        }
+
         const relativeCameraOffset = new THREE.Vector3(1, 2, 1);
 
         const cameraOffset = relativeCameraOffset.applyMatrix4(this.mainCharacter.matrixWorld);
@@ -153,6 +223,29 @@ class Board {
 
         this.renderer.render(this.scene, this.camera);
 
+    }
+
+    getDiceResult () {
+        const dice = this.gameObjects.dice;
+        const faces = dice.geometry.faces;
+        const vertices = dice.geometry.vertices;
+
+        let faceIndex = 0;
+        let highestY = vertices[faces[0].b].y;
+        let highestFace = 0;
+        for (let i = 0; i < faces.length; i+=2) {
+            const faceA = faces[i];
+            const faceB = faces[i+1];
+            const maxFaceA = Math.max(vertices[faceA.a].y, vertices[faceA.b].y, vertices[faceA.c].y);
+            const maxFaceB = Math.max(vertices[faceB.a].y, vertices[faceB.b].y, vertices[faceB.c].y);
+            const max = Math.max(maxFaceA, maxFaceB);
+            if (max >= highestY) {
+                highestY = max;
+                highestFace = faceIndex;
+            }
+            faceIndex++;
+        }
+        console.log(faceIndex);
     }
     
     events() {
