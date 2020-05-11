@@ -20,8 +20,6 @@ class Board {
         this.currentCase = 0;
         this.score = 1;
         this.distance = new THREE.Vector3();
-        this.finnishedMoveToNextCase = null;
-        this.moving = false;
     }
 
     load(callback) {
@@ -102,7 +100,6 @@ class Board {
     }
 
     buildDice() {
-
         const materials = [
             new THREE.MeshLambertMaterial({map: this.textures.dice.three}),
             new THREE.MeshLambertMaterial({map: this.textures.dice.five}),
@@ -113,7 +110,8 @@ class Board {
         ];
         const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
         this.gameObjects.dice = new THREE.Mesh(geo, materials);
-        this.gameObjects.dice.position.set(10, 2.5, 8);
+        const charPos = this.mainCharacter.position.clone();
+        this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
         this.scene.add(this.gameObjects.dice);
     }
 
@@ -160,6 +158,10 @@ class Board {
         this.moveToNextCase(() => {
             if (index === 0) {
                 console.log('goal')
+                const charPos = this.mainCharacter.position.clone();
+                this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
+                this.game.mainPlayer.moveInProgress = false;
+                this.showDice();
             } else {
                 this.moveToCase(index-1)
             }
@@ -167,49 +169,55 @@ class Board {
     }
 
     moveToNextCase(callback) {
-        this.moving = true;
-        this.finnishedMoveToNextCase = callback;
-        this.updateMoveToNextCase();
-    }
-
-    updateMoveToNextCase() {
-        const currentPosition = this.mainCharacter.position;
+        let position = this.mainCharacter.position.clone();
         const nextCase = this.cases[this.currentCase];
-        this.distance = new THREE.Vector3(
-            nextCase.position.x - currentPosition.x+0.1,
-            nextCase.position.y - currentPosition.y+0.5,
-            nextCase.position.z - currentPosition.z
-        );
+        const anim = new TWEEN.Tween(position).to({x: nextCase.position.x+0.1, y: nextCase.position.y+0.5, z: nextCase.position.z}, 500).easing(TWEEN.Easing.Quadratic.Out);
+        anim.onUpdate(() => {
+            this.mainCharacter.position.set(position.x, position.y, position.z);
+        });
+        anim.onComplete(() => {
+            this.currentCase++;
+            callback();
+        });
+        anim.start();
+        
     }
 
-    update() {
+    showDice() {
+        let position = this.gameObjects.dice.position.clone();
+        const anim = new TWEEN.Tween(position).to({x: position.x, y: this.mainCharacter.position.y+1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
+        anim.onUpdate(() => {
+            this.gameObjects.dice.position.set(position.x, position.y, position.z);
+        });
+        anim.onComplete(() => {
+            this.game.diceRolling = true;
+        });
+        anim.start();
+    }
+
+    hideDice() {
+        let position = this.gameObjects.dice.position.clone();
+        const anim = new TWEEN.Tween(position).to({x: position.x, y: 10, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.In);
+        anim.onUpdate(() => {
+            this.gameObjects.dice.position.set(position.x, position.y, position.z);
+        });
+        anim.onComplete(() => {
+        });
+        anim.start();
+    }
+
+
+    update(time) {
 
         const delta = this.clock.getDelta();
 
-        if (this.moving) {
-            const x = Math.abs(parseFloat(this.distance.x).toFixed(1));
-            const y = Math.abs(parseFloat(this.distance.y).toFixed(1));
-            const z = Math.abs(parseFloat(this.distance.z).toFixed(1));
-
-            if (x !== 0 || y !== 0 || z !== 0) {
-                this.mainCharacter.translateX(this.distance.x * delta * 2);
-                this.mainCharacter.translateY(this.distance.y * delta * 2);
-                this.mainCharacter.translateZ(this.distance.z * delta * 2);
-                this.updateMoveToNextCase();
-            } else {
-                this.moving = false;
-                this.currentCase++;
-                this.finnishedMoveToNextCase();
-            }
-        }
-
         if (this.game.diceRolling) {
-            const speedX = Math.floor(Math.random() * 4) + 2;
-            const speedY = Math.floor(Math.random() * 5) + 2;
-            const speedZ = Math.floor(Math.random() * 6) + 2;
-            this.gameObjects.dice.rotation.x += Math.PI * speedX * delta;
-            this.gameObjects.dice.rotation.y += Math.PI * speedY *  delta;
-            this.gameObjects.dice.rotation.z += Math.PI * speedZ * delta;
+            /*const speedX = Math.floor(Math.random() * 3) + 2;
+            const speedY = Math.floor(Math.random() * 4) + 2;
+            const speedZ = Math.floor(Math.random() * 5) + 2;*/
+            this.gameObjects.dice.rotation.x += Math.PI * 3 * delta;
+            this.gameObjects.dice.rotation.y += Math.PI * 3 *  delta;
+            this.gameObjects.dice.rotation.z += Math.PI * 3 * delta;
         }
 
         const relativeCameraOffset = new THREE.Vector3(1, 2, 1);
@@ -223,29 +231,56 @@ class Board {
 
         this.renderer.render(this.scene, this.camera);
 
+        TWEEN.update(time);
+
     }
 
-    getDiceResult () {
-        const dice = this.gameObjects.dice;
-        const faces = dice.geometry.faces;
-        const vertices = dice.geometry.vertices;
+    showDiceResult(score) {
+        console.log(score);
 
-        let faceIndex = 0;
-        let highestY = vertices[faces[0].b].y;
-        let highestFace = 0;
-        for (let i = 0; i < faces.length; i+=2) {
-            const faceA = faces[i];
-            const faceB = faces[i+1];
-            const maxFaceA = Math.max(vertices[faceA.a].y, vertices[faceA.b].y, vertices[faceA.c].y);
-            const maxFaceB = Math.max(vertices[faceB.a].y, vertices[faceB.b].y, vertices[faceB.c].y);
-            const max = Math.max(maxFaceA, maxFaceB);
-            if (max >= highestY) {
-                highestY = max;
-                highestFace = faceIndex;
-            }
-            faceIndex++;
+        const startRotation = new THREE.Euler().copy(this.gameObjects.dice.rotation);
+
+        this.gameObjects.dice.lookAt(this.camera.position);
+
+        switch (score) {
+            case 1:
+                this.gameObjects.dice.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI/2);
+                break;
+            case 2:
+                break;
+            case 3:
+                this.gameObjects.dice.rotateOnAxis(new THREE.Vector3(0, -1, 0), Math.PI/2);
+            break;
+            case 4:
+                this.gameObjects.dice.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI);
+                break;
+            case 5:
+                this.gameObjects.dice.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI/2);
+                break;
+            case 6:
+                this.gameObjects.dice.rotateOnAxis(new THREE.Vector3(-1, 0, 0), Math.PI/2);
+                break;
         }
-        console.log(faceIndex);
+
+        const endRotation = new THREE.Euler().copy(this.gameObjects.dice.rotation);
+        this.gameObjects.dice.rotation.copy(startRotation);
+
+        let rotation = {x: startRotation._x, y: startRotation._y, z: startRotation._z};
+        const anim = new TWEEN.Tween(rotation).to({x: endRotation._x, y: endRotation._y, z: endRotation._z}, 300).easing(TWEEN.Easing.Quadratic.In);
+        anim.onUpdate(() => {
+            this.gameObjects.dice.rotation.set(rotation.x, rotation.y, rotation.z);
+        });
+        anim.onComplete(() => {
+            setTimeout(() => {
+                this.hideDice();
+            }, 500);
+            setTimeout(() => {
+                this.moveToCase(score-1);
+            }, 1000);
+        });
+        anim.start();
+        
+    
     }
     
     events() {

@@ -5,6 +5,7 @@ class Player {
         this.name = null;
         this.id = null;
         this.position = 0;
+        this.moveInProgress = false;
     }
 
 

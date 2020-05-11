@@ -12,11 +12,12 @@ class MainPlayer extends Player {
     }
 
     stopDice() {
-        this.game.diceRolling = !this.game.diceRolling;
-        this.game.board.getDiceResult();
-        //const score = Math.floor(Math.random() * 6) + 1;
-        //console.log(score);
-        //this.game.board.moveToCase(score - 1);
+        if (!this.moveInProgress) {
+            this.game.diceRolling = false;
+            const score = Math.floor(Math.random() * 6) + 1;
+            this.moveInProgress = true;
+            this.game.board.showDiceResult(score);
+        }
     }
 
 }

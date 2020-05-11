@@ -11,7 +11,7 @@ class Game {
     constructor () {
         this.board = new Board(this);
         this.mainPlayer = new MainPlayer(this);
-        this.diceRolling = true;
+        this.diceRolling = false;
         /*this.sync = new Sync(this);
         this.voice = new Voice(this);
         this.chat = new Chat(this);
@@ -23,6 +23,7 @@ class Game {
         this.board.load(() => {
             this.board.build();
             this.update();
+            this.start();
         });
         
         /*this.UI.init();
@@ -38,6 +39,10 @@ class Game {
         window.requestAnimationFrame(() => {
             this.update();
         });
+    }
+
+    start() {
+        this.board.showDice();
     }
 
     /*setUsers(users) {
