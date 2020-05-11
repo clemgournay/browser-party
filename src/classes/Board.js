@@ -20,6 +20,7 @@ class Board {
         this.currentCase = 0;
         this.score = 1;
         this.distance = new THREE.Vector3();
+        this.animations = {};
     }
 
     load(callback) {
@@ -42,6 +43,12 @@ class Board {
         const fbxLoader = new FBXLoader(this.loader);
         fbxLoader.load('./assets/models/Board.fbx', (obj) => {
             this.gameObjects.board = obj;
+        });
+
+
+        fbxLoader.load('./assets/models/Character.fbx', (obj) => {
+            this.mainCharacter = obj;
+            console.log(obj);
         });
 
         this.textures.dice = [];
@@ -108,7 +115,7 @@ class Board {
             new THREE.MeshLambertMaterial({map: this.textures.dice.two}),
             new THREE.MeshLambertMaterial({map: this.textures.dice.four})
         ];
-        const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+        const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
         this.gameObjects.dice = new THREE.Mesh(geo, materials);
         const charPos = this.mainCharacter.position.clone();
         this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
@@ -116,11 +123,26 @@ class Board {
     }
 
     createMainCharacter() {
-        const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const mat = new THREE.MeshLambertMaterial({color: 'lightblue'});
-        this.mainCharacter = new THREE.Mesh(geo, mat);
-        this.mainCharacter.position.set(10, 1.5, 8);
+        this.mainCharacter.traverse((child) => {
+            child.castShadows = true;
+            child.receiveShadows = true;
+        });
+
+        this.mixer = new THREE.AnimationMixer(this.mainCharacter);
+
+        this.animations.mainCharacter = {};
+        this.animations.mainCharacter.iddle = this.mixer.clipAction(this.mainCharacter.animations[2]);
+        this.animations.mainCharacter.iddle.playing = true;
+        this.animations.mainCharacter.running = this.mixer.clipAction(this.mainCharacter.animations[0]);
+        this.animations.mainCharacter.jumping = this.mixer.clipAction(this.mainCharacter.animations[3]);
+        this.animations.mainCharacter.jumping.setLoop(THREE.LoopOnce);
+        this.animations.mainCharacter.iddle.play();
+
+        this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
+        this.mainCharacter.position.set(10, 1, 8);
+        this.mainCharacter.lookAt(this.cases[this.currentCase].position);
         this.scene.add(this.mainCharacter);
+
     }
 
 
@@ -169,23 +191,53 @@ class Board {
     }
 
     moveToNextCase(callback) {
+
+        if (this.animations.mainCharacter.jumping.playing) {
+            this.animations.mainCharacter.jumping.stop();
+            this.animations.mainCharacter.jumping.playing = false;
+        }
+        if (!this.animations.mainCharacter.running.playing) {
+            this.animations.mainCharacter.running.play();
+            this.animations.mainCharacter.running.playing = true;
+        }
+
         let position = this.mainCharacter.position.clone();
         const nextCase = this.cases[this.currentCase];
-        const anim = new TWEEN.Tween(position).to({x: nextCase.position.x+0.1, y: nextCase.position.y+0.5, z: nextCase.position.z}, 500).easing(TWEEN.Easing.Quadratic.Out);
-        anim.onUpdate(() => {
+
+        const moveAnim = new TWEEN.Tween(position).to({x: nextCase.position.x, y: nextCase.position.y+0.1, z: nextCase.position.z}, 600);
+        moveAnim.onUpdate(() => {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
-        anim.onComplete(() => {
+        moveAnim.onComplete(() => {
+            this.animations.mainCharacter.running.stop();
+            this.animations.mainCharacter.running.playing = false;
+            this.animations.mainCharacter.iddle.play();
+            this.animations.mainCharacter.iddle.playing = true;
             this.currentCase++;
             callback();
         });
-        anim.start();
+        moveAnim.start();
+
+        const startRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
+        this.mainCharacter.lookAt(nextCase.position);
+        const endRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
+
+        if (endRotation._y !== startRotation._y) {
+            this.mainCharacter.rotation.copy(startRotation);
+            let rotation = {y: startRotation._y};
+
+            const rotationAnim = new TWEEN.Tween(rotation).to({y: endRotation._y}, 300);
+            rotationAnim.onUpdate(() => {
+                this.mainCharacter.rotation.y = rotation.y;
+            });
+            rotationAnim.start();
+        }
         
     }
 
     showDice() {
         let position = this.gameObjects.dice.position.clone();
-        const anim = new TWEEN.Tween(position).to({x: position.x, y: this.mainCharacter.position.y+1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
+        const anim = new TWEEN.Tween(position).to({x: position.x, y: this.mainCharacter.position.y+1.1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
         anim.onUpdate(() => {
             this.gameObjects.dice.position.set(position.x, position.y, position.z);
         });
@@ -206,21 +258,33 @@ class Board {
         anim.start();
     }
 
+    hitDice() {
+        
+        this.animations.mainCharacter.iddle.stop();
+        this.animations.mainCharacter.iddle.playing = false;
+        this.animations.mainCharacter.jumping.play();
+        this.animations.mainCharacter.jumping.playing = true;
+
+        setTimeout(() => {
+            this.game.diceRolling = false;
+            const score = Math.floor(Math.random() * 6) + 1;
+            this.showDiceResult(score);
+        }, 500);
+        
+    }
+
 
     update(time) {
 
         const delta = this.clock.getDelta();
 
         if (this.game.diceRolling) {
-            /*const speedX = Math.floor(Math.random() * 3) + 2;
-            const speedY = Math.floor(Math.random() * 4) + 2;
-            const speedZ = Math.floor(Math.random() * 5) + 2;*/
             this.gameObjects.dice.rotation.x += Math.PI * 3 * delta;
             this.gameObjects.dice.rotation.y += Math.PI * 3 *  delta;
             this.gameObjects.dice.rotation.z += Math.PI * 3 * delta;
         }
 
-        const relativeCameraOffset = new THREE.Vector3(1, 2, 1);
+        const relativeCameraOffset = new THREE.Vector3(-230, 450, -250);
 
         const cameraOffset = relativeCameraOffset.applyMatrix4(this.mainCharacter.matrixWorld);
 
@@ -229,6 +293,7 @@ class Board {
         this.camera.position.z = cameraOffset.z;
         this.camera.lookAt(this.mainCharacter.position);
 
+        this.mixer.update(delta);
         this.renderer.render(this.scene, this.camera);
 
         TWEEN.update(time);
