@@ -2,6 +2,7 @@ import * as THREE from '../vendor/three/three.module.js';
 import { FBXLoader } from '../vendor/three/loaders/FBXLoader.js';
 
 import { Controls } from './Controls.js';
+import { Animator } from './Animator.js';
 
 class Board {
     
@@ -10,6 +11,7 @@ class Board {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1000);
         this.scene = new THREE.Scene();
         this.controls = new Controls(this.game);
+        this.animator = new Animator(this.game);
         this.gameObjects = {};
         this.textures = {};
         this.mainCharacter = new THREE.Group();
@@ -128,7 +130,12 @@ class Board {
             child.receiveShadows = true;
         });
 
-        this.mixer = new THREE.AnimationMixer(this.mainCharacter);
+        this.animator.create('mainChar', this.mainCharacter);
+        this.animator.addAnimation('mainChar', 'idle', 2);
+        this.animator.addAnimation('mainChar', 'running', 0);
+        this.animator.addAnimation('mainChar', 'jumping', 3);
+        this.animations.play('mainChar', 'idle');
+        /*this.mixer = new THREE.AnimationMixer(this.mainCharacter);
 
         this.animations.mainCharacter = {};
         this.animations.mainCharacter.idle = this.mixer.clipAction(this.mainCharacter.animations[2]);
@@ -143,7 +150,7 @@ class Board {
             const curAction = e.action;
             const clip = curAction.getClip();
             console.log(curAction, clip)
-        });
+        });*/
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
         this.mainCharacter.position.set(10, 1, 8);
@@ -263,22 +270,22 @@ class Board {
 
     hitDice() {
 
-        console.log(this.mixer)
         
-        this.animations.mainCharacter.idle.crossFadeTo(this.animations.mainCharacter.jumping, 0.5, true);
+        //this.prepareCrossFade(this.animations.mainCharacter.idle, this.animations.mainCharacter.jumping);
+        /*this.animations.mainCharacter.idle.crossFadeTo(this.animations.mainCharacter.jumping, 1, true);
         setTimeout(() => {
-            this.animations.mainCharacter.idle.stop();
-            this.animations.mainCharacter.jumping.play();
+            //this.animations.mainCharacter.idle.stop();
+            //this.animations.mainCharacter.jumping.play();
             setTimeout(() => {
                 this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.idle, 0.5, true);
-                /*this.game.diceRolling = false;
+                this.game.diceRolling = false;
                 const score = Math.floor(Math.random() * 6) + 1;
-                this.showDiceResult(score);*/
+                this.showDiceResult(score);
                 setTimeout(() => {
                     this.animations.mainCharacter.jumping.stop();
                 }, 500);
             }, 1000);
-        }, 500);
+        }, 500);*/
         /*this.animations.mainCharacter.idle.stop();
         this.animations.mainCharacter.idle.playing = false;
         this.animations.mainCharacter.jumping.play();
@@ -287,8 +294,7 @@ class Board {
         /*;*/
         
     }
-
-
+    
     update(time) {
 
         const delta = this.clock.getDelta();
