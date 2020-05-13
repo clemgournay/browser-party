@@ -130,27 +130,10 @@ class Board {
             child.receiveShadows = true;
         });
 
-        this.animator.create('mainChar', this.mainCharacter);
-        this.animator.addAnimation('mainChar', 'idle', 2);
-        this.animator.addAnimation('mainChar', 'running', 0);
-        this.animator.addAnimation('mainChar', 'jumping', 3);
-        this.animations.play('mainChar', 'idle');
-        /*this.mixer = new THREE.AnimationMixer(this.mainCharacter);
-
-        this.animations.mainCharacter = {};
-        this.animations.mainCharacter.idle = this.mixer.clipAction(this.mainCharacter.animations[2]);
-        this.animations.mainCharacter.idle.playing = true;
-        this.animations.mainCharacter.running = this.mixer.clipAction(this.mainCharacter.animations[0]);
-        this.animations.mainCharacter.jumping = this.mixer.clipAction(this.mainCharacter.animations[3]);
-        this.animations.mainCharacter.jumping.clampWhenFinished = true;
-        this.animations.mainCharacter.idle.play();
-
-        this.mixer.addEventListener('finished', (e) => {
-            console.log(e)
-            const curAction = e.action;
-            const clip = curAction.getClip();
-            console.log(curAction, clip)
-        });*/
+        this.animator.create('main-char', this.mainCharacter);
+        this.animator.addAnimation('main-char', 'idle', 2, 1, true);
+        this.animator.addAnimation('main-char', 'run', 0, 0, true);
+        this.animator.addAnimation('main-char', 'jump', 3, 0, false);
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
         this.mainCharacter.position.set(10, 1, 8);
@@ -206,10 +189,10 @@ class Board {
 
     moveToNextCase(callback) {
 
-        this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.running, 0.5, true);
+        /*this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.running, 0.5, true);
         setTimeout(() => {
             this.animations.mainCharacter.jumping.stop();
-        }, 500);
+        }, 500);*/
 
         let position = this.mainCharacter.position.clone();
         const nextCase = this.cases[this.currentCase];
@@ -219,10 +202,10 @@ class Board {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
-            this.animations.mainCharacter.running.stop();
+            /*this.animations.mainCharacter.running.stop();
             this.animations.mainCharacter.running.playing = false;
             this.animations.mainCharacter.idle.play();
-            this.animations.mainCharacter.idle.playing = true;
+            this.animations.mainCharacter.idle.playing = true;*/
             this.currentCase++;
             callback();
         });
@@ -270,7 +253,7 @@ class Board {
 
     hitDice() {
 
-        
+        this.animator.playFade('main-char', 'jump', 0.5, true);
         //this.prepareCrossFade(this.animations.mainCharacter.idle, this.animations.mainCharacter.jumping);
         /*this.animations.mainCharacter.idle.crossFadeTo(this.animations.mainCharacter.jumping, 1, true);
         setTimeout(() => {
@@ -314,7 +297,7 @@ class Board {
         this.camera.position.z = cameraOffset.z;
         this.camera.lookAt(this.mainCharacter.position);
 
-        this.mixer.update(delta);
+        this.animator.update(delta);
         this.renderer.render(this.scene, this.camera);
 
         TWEEN.update(time);
