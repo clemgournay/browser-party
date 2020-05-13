@@ -19,7 +19,7 @@ class Board {
         this.cases = [];
         this.currentCase = 0;
         this.score = 1;
-        this.distance = new THREE.Vector3();
+        this.mixer = null;
         this.animations = {};
     }
 
@@ -131,12 +131,19 @@ class Board {
         this.mixer = new THREE.AnimationMixer(this.mainCharacter);
 
         this.animations.mainCharacter = {};
-        this.animations.mainCharacter.iddle = this.mixer.clipAction(this.mainCharacter.animations[2]);
-        this.animations.mainCharacter.iddle.playing = true;
+        this.animations.mainCharacter.idle = this.mixer.clipAction(this.mainCharacter.animations[2]);
+        this.animations.mainCharacter.idle.playing = true;
         this.animations.mainCharacter.running = this.mixer.clipAction(this.mainCharacter.animations[0]);
         this.animations.mainCharacter.jumping = this.mixer.clipAction(this.mainCharacter.animations[3]);
-        this.animations.mainCharacter.jumping.setLoop(THREE.LoopOnce);
-        this.animations.mainCharacter.iddle.play();
+        this.animations.mainCharacter.jumping.clampWhenFinished = true;
+        this.animations.mainCharacter.idle.play();
+
+        this.mixer.addEventListener('finished', (e) => {
+            console.log(e)
+            const curAction = e.action;
+            const clip = curAction.getClip();
+            console.log(curAction, clip)
+        });
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
         this.mainCharacter.position.set(10, 1, 8);
@@ -192,14 +199,10 @@ class Board {
 
     moveToNextCase(callback) {
 
-        if (this.animations.mainCharacter.jumping.playing) {
+        this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.running, 0.5, true);
+        setTimeout(() => {
             this.animations.mainCharacter.jumping.stop();
-            this.animations.mainCharacter.jumping.playing = false;
-        }
-        if (!this.animations.mainCharacter.running.playing) {
-            this.animations.mainCharacter.running.play();
-            this.animations.mainCharacter.running.playing = true;
-        }
+        }, 500);
 
         let position = this.mainCharacter.position.clone();
         const nextCase = this.cases[this.currentCase];
@@ -211,8 +214,8 @@ class Board {
         moveAnim.onComplete(() => {
             this.animations.mainCharacter.running.stop();
             this.animations.mainCharacter.running.playing = false;
-            this.animations.mainCharacter.iddle.play();
-            this.animations.mainCharacter.iddle.playing = true;
+            this.animations.mainCharacter.idle.play();
+            this.animations.mainCharacter.idle.playing = true;
             this.currentCase++;
             callback();
         });
@@ -259,17 +262,29 @@ class Board {
     }
 
     hitDice() {
-        
-        this.animations.mainCharacter.iddle.stop();
-        this.animations.mainCharacter.iddle.playing = false;
-        this.animations.mainCharacter.jumping.play();
-        this.animations.mainCharacter.jumping.playing = true;
 
+        console.log(this.mixer)
+        
+        this.animations.mainCharacter.idle.crossFadeTo(this.animations.mainCharacter.jumping, 0.5, true);
         setTimeout(() => {
-            this.game.diceRolling = false;
-            const score = Math.floor(Math.random() * 6) + 1;
-            this.showDiceResult(score);
+            this.animations.mainCharacter.idle.stop();
+            this.animations.mainCharacter.jumping.play();
+            setTimeout(() => {
+                this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.idle, 0.5, true);
+                /*this.game.diceRolling = false;
+                const score = Math.floor(Math.random() * 6) + 1;
+                this.showDiceResult(score);*/
+                setTimeout(() => {
+                    this.animations.mainCharacter.jumping.stop();
+                }, 500);
+            }, 1000);
         }, 500);
+        /*this.animations.mainCharacter.idle.stop();
+        this.animations.mainCharacter.idle.playing = false;
+        this.animations.mainCharacter.jumping.play();
+        this.animations.mainCharacter.jumping.playing = true;*/
+
+        /*;*/
         
     }
 
