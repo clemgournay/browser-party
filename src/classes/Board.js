@@ -82,7 +82,7 @@ class Board {
 
         this.buildLights();
         this.buildBoardOBJ();
-        this.buildCase(9.9, 1, 6.9);
+        this.buildCase(10.1, 1, -9);
         this.buildCase(9.9, 1, 3.9);
         this.buildCase(8, 1, 3.9);
         this.buildCase(5.3, 1, 3.9);
@@ -136,7 +136,7 @@ class Board {
         this.animator.addAnimation('main-char', 'jump', 3, 0, false);
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
-        this.mainCharacter.position.set(10, 1, 8);
+        this.mainCharacter.position.set(10, 1, -10);
         this.mainCharacter.lookAt(this.cases[this.currentCase].position);
         this.scene.add(this.mainCharacter);
 
@@ -147,8 +147,8 @@ class Board {
         const ambient = new THREE.AmbientLight(0xfffffff, 0.2);
         this.scene.add(ambient);
 
-        const light = new THREE.PointLight(0xffffff, 0.8);
-        light.position.set(10, 10, 10);
+        const light = new THREE.PointLight(0xffffff, 0.9);
+        light.position.set(12, 10, -10);
         light.castShadow = true;
         this.scene.add(light);
     }
@@ -157,7 +157,6 @@ class Board {
         this.gameObjects.board.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
-            child.material = new THREE.MeshLambertMaterial({color: 'darkgrey'});
         });
         this.gameObjects.board.rotation.y = Math.PI;
         this.scene.add(this.gameObjects.board);
