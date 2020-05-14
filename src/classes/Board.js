@@ -9,6 +9,7 @@ class Board {
     
     constructor(game) {
         this.game = game;
+        this.name = null;
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1000);
         this.scene = new THREE.Scene();
         this.controls = new Controls(this.game);
@@ -22,63 +23,71 @@ class Board {
         this.cases = [];
         this.currentCase = 0;
         this.score = 1;
-        this.mixer = null;
-        this.animations = {};
+        this.blueCaseValue = 0;
+        this.redCaseValue = 0;
     }
 
     load(callback) {
-        this.loader.onStart = (url, itemsLoaded, itemsTotal) => {
-            console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
-        }
-
-        this.loader.onLoad = () => {
-            callback();
-        }
-
-        this.loader.onProgress = (url, itemsLoaded, itemsTotal) => {
-            console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
-        }
-
-        this.loader.onError = () => {
-            console.log('error')
-        }
-
-        const fbxLoader = new FBXLoader(this.loader);
-        fbxLoader.load('./assets/models/Board.fbx', (obj) => {
-            this.gameObjects.board = obj;
-        });
-
-
-        fbxLoader.load('./assets/models/Character.fbx', (obj) => {
-            this.mainCharacter = obj;
-            console.log(obj);
-        });
-
-        this.textures.dice = [];
-        const textureLoader = new THREE.TextureLoader(this.loader);
-        textureLoader.load('./assets/textures/dice/1.png', (texture) => {
-            this.textures.dice.one = texture;
-        });
-        textureLoader.load('./assets/textures/dice/2.png', (texture) => {
-            this.textures.dice.two = texture;
-        });
-        textureLoader.load('./assets/textures/dice/3.png', (texture) => {
-            this.textures.dice.three = texture;
-        });
-        textureLoader.load('./assets/textures/dice/4.png', (texture) => {
-            this.textures.dice.four = texture;
-        });
-        textureLoader.load('./assets/textures/dice/5.png', (texture) => {
-            this.textures.dice.five = texture;
-        });
-        textureLoader.load('./assets/textures/dice/6.png', (texture) => {
-            this.textures.dice.six = texture;
-        });
 
         $.get('./assets/boards/1.json', (board) => {
+
+            this.name = board.name;
+            this.redCaseValue = board.redCaseValue;
+            this.blueCaseValue = board.blueCaseValue;
+
             board.cases.forEach((caseData) => {
                 this.cases.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}));
             });
+        
+
+            this.loader.onStart = (url, itemsLoaded, itemsTotal) => {
+                console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+            }
+
+            this.loader.onLoad = () => {
+                callback();
+            }
+
+            this.loader.onProgress = (url, itemsLoaded, itemsTotal) => {
+                console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+            }
+
+            this.loader.onError = () => {
+                console.log('error')
+            }
+
+            const fbxLoader = new FBXLoader(this.loader);
+            fbxLoader.load('./assets/models/Board.fbx', (obj) => {
+                this.gameObjects.board = obj;
+            });
+
+
+            fbxLoader.load('./assets/models/Character.fbx', (obj) => {
+                this.mainCharacter = obj;
+                console.log(obj);
+            });
+
+            this.textures.dice = [];
+            const textureLoader = new THREE.TextureLoader(this.loader);
+            textureLoader.load('./assets/textures/dice/1.png', (texture) => {
+                this.textures.dice.one = texture;
+            });
+            textureLoader.load('./assets/textures/dice/2.png', (texture) => {
+                this.textures.dice.two = texture;
+            });
+            textureLoader.load('./assets/textures/dice/3.png', (texture) => {
+                this.textures.dice.three = texture;
+            });
+            textureLoader.load('./assets/textures/dice/4.png', (texture) => {
+                this.textures.dice.four = texture;
+            });
+            textureLoader.load('./assets/textures/dice/5.png', (texture) => {
+                this.textures.dice.five = texture;
+            });
+            textureLoader.load('./assets/textures/dice/6.png', (texture) => {
+                this.textures.dice.six = texture;
+            });
+
         });
 
     }
@@ -90,16 +99,6 @@ class Board {
         this.buildLights();
         this.buildBoardOBJ();
         this.buildCases();
-        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -9.5}));
-        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -8.5}));
-        this.cases.push(new Case('red', {x: 10.4, y: 0.6, z: -7.5}));
-        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -6.5}));
-        this.cases.push(new Case('red', {x: 10.4, y: 0.6, z: -5.5}));
-        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -4.5}));
-        this.cases.push(new Case('blue', {x: 9.4, y: 0.6, z: -4.5}));
-        this.cases.push(new Case('blue', {x: 8.4, y: 0.6, z: -4.5}));
-        this.cases.push(new Case('blue', {x: 7.4, y: 0.6, z: -4.5}));
-
         this.createMainCharacter();
         this.buildDice();
 
@@ -165,7 +164,6 @@ class Board {
         const casePos = this.cases[this.currentCase].mesh.position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         this.mainCharacter.lookAt(lookPos);
-        console.log(lookPos)
         this.scene.add(this.mainCharacter);
 
     }
@@ -195,9 +193,8 @@ class Board {
         this.moveToNextCase(() => {
             if (index === 0) {
                 console.log('goal')
-                this.animator.playFade('main-char', 'idle', 0.2, () => {
-
-                });
+                this.animator.playFade('main-char', 'idle', 0.2);
+                this.cases[this.currentCase].action();
                 const charPos = this.mainCharacter.position.clone();
                 this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
                 this.game.mainPlayer.moveInProgress = false;
@@ -207,6 +204,8 @@ class Board {
             }
         });
     }
+
+
 
     moveToNextCase(callback) {
 

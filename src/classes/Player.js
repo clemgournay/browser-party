@@ -6,7 +6,7 @@ class Player {
         this.id = 'test';
         this.position = 0;
         this.stars = 0;
-        this.coins = 0;
+        this.coins = 10;
         this.rank = 1;
         this.moveInProgress = false;
     }

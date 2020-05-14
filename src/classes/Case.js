@@ -5,7 +5,18 @@ class Case {
         this.type = type;
         this.position = position;
         this.mesh = null;
-        this.value = (this.type === 'blue') ? 6 : -6;
+    }
+
+    action () {
+        switch(this.type) {
+            case 'blue':
+                this.game.mainPlayer.coins += this.game.board.blueCaseValue;
+                break;
+            case 'red':
+                this.game.mainPlayer.coins += this.game.board.redCaseValue;
+                break;
+        }
+        this.game.UI.updatePlayerScore(this.mainPlayer);
     }
 
 }
