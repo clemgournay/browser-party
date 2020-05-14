@@ -133,7 +133,9 @@ class Board {
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
         this.mainCharacter.position.set(10.4, 0.6, -10);
-        this.mainCharacter.lookAt(this.cases[this.currentCase].position);
+        const casePos = this.cases[this.currentCase].position;
+        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.05, casePos.z);
+        this.mainCharacter.lookAt(lookPos);
         this.scene.add(this.mainCharacter);
 
     }
@@ -172,6 +174,9 @@ class Board {
         this.moveToNextCase(() => {
             if (index === 0) {
                 console.log('goal')
+                this.animator.playFade('main-char', 'idle', 0.2, () => {
+
+                });
                 const charPos = this.mainCharacter.position.clone();
                 this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
                 this.game.mainPlayer.moveInProgress = false;
@@ -184,36 +189,29 @@ class Board {
 
     moveToNextCase(callback) {
 
-        this.animator.playFade('main-char', 'run', 0.5, () => {
-            
-        })
-        /*this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.running, 0.5, true);
-        setTimeout(() => {
-            this.animations.mainCharacter.jumping.stop();
-        }, 500);*/
+        
+        if (this.animator.currentAnimations['main-char'] !== 'run') {
+            this.animator.playFade('main-char', 'run', 0.2);
+        }
 
         let position = this.mainCharacter.position.clone();
         const nextCase = this.cases[this.currentCase];
+        const casePos = nextCase.position;
 
-        const moveAnim = new TWEEN.Tween(position).to({x: nextCase.position.x, y: nextCase.position.y+0.1, z: nextCase.position.z}, 600);
+        const moveAnim = new TWEEN.Tween(position).to({x: casePos.x, y: casePos.y+0.1, z: casePos.z}, 600);
         moveAnim.onUpdate(() => {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
-            this.animator.playFade('main-char', 'idle', 0.5, () => {
-
-            });
-            /*this.animations.mainCharacter.running.stop();
-            this.animations.mainCharacter.running.playing = false;
-            this.animations.mainCharacter.idle.play();
-            this.animations.mainCharacter.idle.playing = true;*/
             this.currentCase++;
             callback();
         });
         moveAnim.start();
 
         const startRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
-        this.mainCharacter.lookAt(nextCase.position);
+        
+        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
+        this.mainCharacter.lookAt(lookPos);
         const endRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
 
         if (endRotation._y !== startRotation._y) {
@@ -254,36 +252,12 @@ class Board {
 
     hitDice() {
 
-        /*this.animator.playFade('main-char', 'jump', 0.5, true, () => {
-
-        });*/
+        this.animator.playFade('main-char', 'jump', 0.2);
         setTimeout(() => {
             this.game.diceRolling = false;
             const score = Math.floor(Math.random() * 6) + 1;
             this.showDiceResult(score);
         }, 500);
-        //this.prepareCrossFade(this.animations.mainCharacter.idle, this.animations.mainCharacter.jumping);
-        /*this.animations.mainCharacter.idle.crossFadeTo(this.animations.mainCharacter.jumping, 1, true);
-        setTimeout(() => {
-            //this.animations.mainCharacter.idle.stop();
-            //this.animations.mainCharacter.jumping.play();
-            setTimeout(() => {
-                this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.idle, 0.5, true);
-                this.game.diceRolling = false;
-                const score = Math.floor(Math.random() * 6) + 1;
-                this.showDiceResult(score);
-                setTimeout(() => {
-                    this.animations.mainCharacter.jumping.stop();
-                }, 500);
-            }, 1000);
-        }, 500);*/
-        /*this.animations.mainCharacter.idle.stop();
-        this.animations.mainCharacter.idle.playing = false;
-        this.animations.mainCharacter.jumping.play();
-        this.animations.mainCharacter.jumping.playing = true;*/
-
-        /*;*/
-        
     }
     
     update(time) {
@@ -296,7 +270,7 @@ class Board {
             this.gameObjects.dice.rotation.z += Math.PI * 3 * delta;
         }
 
-        const relativeCameraOffset = new THREE.Vector3(-150, 350, -250);
+        const relativeCameraOffset = new THREE.Vector3(-150, 330, -250);
 
         const cameraOffset = relativeCameraOffset.applyMatrix4(this.mainCharacter.matrixWorld);
 

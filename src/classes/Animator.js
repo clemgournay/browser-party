@@ -21,21 +21,21 @@ class Animator {
         if (loop === false) this.animations[id][action].clampWhenFinished = true;
     }
 
-    play(id, action) {
-        this.animations[id][action].play();
-    }
 
     playFade(id, endAction, duration, callback) {
         const startAction = this.currentAnimations[id];
+        const startClip = this.animations[id][startAction];
         const endClip = this.animations[id][endAction];
-        this.crossFade(id, startAction, endAction, duration);
-        
-        // If animation not loop, callback when animation finishes
-        if (endClip.clampWhenFinished === true) {
+
+        endClip.play();
+        this.setWeight(id, endAction, 1);
+        endClip.time = 0;
+        startClip.crossFadeTo(endClip, duration);
+        console.log(endAction)
+        this.currentAnimations[id] = endAction;
+        if (endClip.clampWhenFinished) {
             const totalDuration = (duration*1000) + (endClip._clip.duration * 1000) - 100;
             setTimeout(() => {
-                this.setWeight(id, endAction, 0);
-                //this.crossFade(id, endAction, startAction, duration)
                 if (callback) callback();
             }, totalDuration);
         } else { // else, callback after animation cross fade
@@ -50,44 +50,6 @@ class Animator {
         for (const id in this.mixers) {
             this.mixers[id].update(delta);
         }
-    }
-
-    crossFade(id, startAction, endAction, duration) {
-		this.unPauseAllActions(id);
-        if (startAction === 'idle') {
-            this.executeCrossFade(id, startAction, endAction, duration);
-        } else {
-            this.synchronizeCrossFade(id, startAction, endAction, duration);
-        }
-    }
-
-    unPauseAllActions(id) {
-        for (var action in this.animations[id]) {
-            this.animations[id][action].paused = false;
-        }
-    }
-
-    executeCrossFade(id, startAction, endAction, duration) {
-        const startClip = this.animations[id][startAction];
-        const endClip = this.animations[id][endAction];
-        this.setWeight(id, endAction, 1);
-        endClip.time = 0;
-        startClip.crossFadeTo(endClip, duration, true);
-    }
-
-
-    synchronizeCrossFade(id, startAction, endAction, duration) {
-        const startClip = this.animations[startAction];
-        const endClip = this.animations[endAction];
-        const onLoopFinished = (e) => {
-            if (e.action === startClip) {
-                this.mixers[id].removeEventListener('loop', onLoopFinished);
-                this.executeCrossFade(startClip, endClip, duration);
-            }
-        }
-        this.mixers[id].addEventListener( 'loop', (e) => {
-            onLoopFinished(e);
-        });
     }
 
 
