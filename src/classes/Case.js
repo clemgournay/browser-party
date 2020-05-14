@@ -8,24 +8,26 @@ class Case {
     }
 
     action () {
-        console.log(this.game.mainPlayer.coins, this.type)
         switch(this.type) {
             case 'blue':
-                this.game.mainPlayer.coins += this.game.board.blueCaseValue;
+                this.game.mainPlayer.updateCoins(this.game.board.blueCaseValue);
                 break;
             case 'red':
-                this.game.mainPlayer.coins += this.game.board.redCaseValue;
+                this.game.mainPlayer.updateCoins(this.game.board.redCaseValue);
+                break;
+            case 'star':
+                if (this.game.mainPlayer.canBuyStar()) {
+                    this.game.mainPlayer.updateStars(1);
+                } else {
+                    alert('You dont have enough coins to buy a star !');
+                }
                 break;
         }
-        console.log(this.game.mainPlayer.coins)
-        if (this.game.mainPlayer.coins < 0) {
-            this.game.mainPlayer.coins = 0;
-        } else if (this.game.mainPlayer.coins >= 100) {
-            this.game.mainPlayer.stars += 1;
-            this.game.mainPlayer.coins = this.game.mainPlayer.coins - 100;
-        }
+        
         this.game.UI.updatePlayerScore(this.game.mainPlayer);
     }
+
+    
 
 }
 

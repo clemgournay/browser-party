@@ -22,7 +22,8 @@ class Board {
         this.clock = new THREE.Clock();
         this.cases = [];
         this.currentCase = -1;
-        this.score = 1;
+        this.score = 0;
+        this.starPrice = 0;
         this.blueCaseValue = 0;
         this.redCaseValue = 0;
     }
@@ -32,6 +33,7 @@ class Board {
         $.get('./assets/boards/1.json', (board) => {
 
             this.name = board.name;
+            this.starPrice = board.starPrice;
             this.redCaseValue = board.redCaseValue;
             this.blueCaseValue = board.blueCaseValue;
 
@@ -121,6 +123,9 @@ class Board {
                 case 'red':
                     color = 'darkred';
                     break;
+                case 'star':
+                    color = 'yellow';
+                    break;
             }
             const geo = new THREE.SphereGeometry(0.3, 32, 32);
             const mat = new THREE.MeshToonMaterial({color: color});
@@ -208,42 +213,58 @@ class Board {
 
 
     moveToNextCase(callback) {
-
         
         if (this.animator.currentAnimations['main-char'] !== 'run') {
             this.animator.playFade('main-char', 'run', 0.2);
         }
 
+        let nextCaseIndex;
+        if (this.currentCase === this.cases.length - 1) {
+            nextCaseIndex = 0;
+        } else {
+            nextCaseIndex = this.currentCase+1;
+        }
         let position = this.mainCharacter.position.clone();
-        const nextCase = this.cases[this.currentCase+1];
+        const nextCase = this.cases[nextCaseIndex];
         const casePos = nextCase.mesh.position;
-        console.log({x: casePos.x, y: casePos.y+0.1, z: casePos.z})
 
         const moveAnim = new TWEEN.Tween(position).to({x: casePos.x, y: casePos.y+0.1, z: casePos.z}, 600);
         moveAnim.onUpdate(() => {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
-            this.currentCase++;
+            this.currentCase = nextCaseIndex
             callback();
         });
         moveAnim.start();
 
         const startRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
         
-        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
-        this.mainCharacter.lookAt(lookPos);
+        //const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
+        //this.mainCharacter.lookAt(lookPos);
+        
         const endRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
+        const angle = Math.atan2(( casePos.x - this.mainCharacter.position.x ), ( casePos.z - this.mainCharacter.position.z ));
+        console.log(angle);
 
-        if (endRotation._y !== startRotation._y) {
-            this.mainCharacter.rotation.copy(startRotation);
-            let rotation = {y: startRotation._y};
+        if (angle !== 0) {
+            let rotation = this.mainCharacter.rotation;
+            const rotationAnim = new TWEEN.Tween(rotation).to({y: angle}, 300);
+            rotationAnim.onUpdate(() => {
+                this.mainCharacter.rotation.y = rotation.y;
+            });
+            rotationAnim.start();
+        //if (endRotation._y !== startRotation._y) {
+            
+            ///this.mainCharacter.rotation.copy(startRotation);
+            
+            /*let rotation = {x: startRotation._x, y: startRotation._y, z: startRotation._z};
 
             const rotationAnim = new TWEEN.Tween(rotation).to({y: endRotation._y}, 300);
             rotationAnim.onUpdate(() => {
                 this.mainCharacter.rotation.y = rotation.y;
             });
-            rotationAnim.start();
+            rotationAnim.start();*/
         }
         
     }
@@ -286,9 +307,9 @@ class Board {
         const delta = this.clock.getDelta();
 
         if (this.game.diceRolling) {
-            this.gameObjects.dice.rotation.x += Math.PI * 3 * delta;
-            this.gameObjects.dice.rotation.y += Math.PI * 3 *  delta;
-            this.gameObjects.dice.rotation.z += Math.PI * 3 * delta;
+            this.gameObjects.dice.rotation.x += Math.PI * 2 * delta;
+            this.gameObjects.dice.rotation.y += Math.PI * 2 *  delta;
+            this.gameObjects.dice.rotation.z += Math.PI * 2 * delta;
         }
 
         const relativeCameraOffset = new THREE.Vector3(-150, 330, -250);
