@@ -16,7 +16,7 @@ class Case {
                 this.game.mainPlayer.coins += this.game.board.redCaseValue;
                 break;
         }
-        this.game.UI.updatePlayerScore(this.mainPlayer);
+        this.game.UI.updatePlayerScore(this.game.mainPlayer);
     }
 
 }
