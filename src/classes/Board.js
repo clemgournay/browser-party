@@ -21,7 +21,7 @@ class Board {
         this.characters = {};
         this.clock = new THREE.Clock();
         this.cases = [];
-        this.currentCase = 0;
+        this.currentCase = -1;
         this.score = 1;
         this.blueCaseValue = 0;
         this.redCaseValue = 0;
@@ -161,7 +161,7 @@ class Board {
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
         this.mainCharacter.position.set(10.4, 0.7, -10);
-        const casePos = this.cases[this.currentCase].mesh.position;
+        const casePos = this.cases[this.currentCase+1].mesh.position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         this.mainCharacter.lookAt(lookPos);
         this.scene.add(this.mainCharacter);
@@ -215,7 +215,7 @@ class Board {
         }
 
         let position = this.mainCharacter.position.clone();
-        const nextCase = this.cases[this.currentCase];
+        const nextCase = this.cases[this.currentCase+1];
         const casePos = nextCase.mesh.position;
         console.log({x: casePos.x, y: casePos.y+0.1, z: casePos.z})
 
