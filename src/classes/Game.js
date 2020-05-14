@@ -11,16 +11,18 @@ class Game {
     constructor () {
         this.board = new Board(this);
         this.mainPlayer = new MainPlayer(this);
+        this.UI = new UI(this);
         this.diceRolling = false;
         /*this.sync = new Sync(this);
         this.voice = new Voice(this);
         this.chat = new Chat(this);
-        this.UI = new UI(this);
+        
         this.players = {};*/
     }
 
     init() {
         this.board.load(() => {
+            this.UI.init();
             this.board.build();
             this.update();
             this.start();

@@ -3,6 +3,7 @@ import { FBXLoader } from '../vendor/three/loaders/FBXLoader.js';
 
 import { Controls } from './Controls.js';
 import { Animator } from './Animator.js';
+import { Case } from './Case.js';
 
 class Board {
     
@@ -74,6 +75,12 @@ class Board {
             this.textures.dice.six = texture;
         });
 
+        $.get('./assets/boards/1.json', (board) => {
+            board.cases.forEach((caseData) => {
+                this.cases.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}));
+            });
+        });
+
     }
 
     build() {
@@ -82,15 +89,16 @@ class Board {
 
         this.buildLights();
         this.buildBoardOBJ();
-        this.buildCase(10.4, 0.6, -9.5);
-        this.buildCase(10.4, 0.6, -8.5);
-        this.buildCase(10.4, 0.6, -7.5);
-        this.buildCase(10.4, 0.6, -6.5);
-        this.buildCase(10.4, 0.6, -5.5);
-        this.buildCase(10.4, 0.6, -4.5);
-        this.buildCase(9.4, 0.6, -4.5);
-        this.buildCase(8.4, 0.6, -4.5);
-        this.buildCase(7.4, 0.6, -4.5);
+        this.buildCases();
+        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -9.5}));
+        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -8.5}));
+        this.cases.push(new Case('red', {x: 10.4, y: 0.6, z: -7.5}));
+        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -6.5}));
+        this.cases.push(new Case('red', {x: 10.4, y: 0.6, z: -5.5}));
+        this.cases.push(new Case('blue', {x: 10.4, y: 0.6, z: -4.5}));
+        this.cases.push(new Case('blue', {x: 9.4, y: 0.6, z: -4.5}));
+        this.cases.push(new Case('blue', {x: 8.4, y: 0.6, z: -4.5}));
+        this.cases.push(new Case('blue', {x: 7.4, y: 0.6, z: -4.5}));
 
         this.createMainCharacter();
         this.buildDice();
@@ -102,6 +110,27 @@ class Board {
 
         this.events();
 
+    }
+
+    buildCases() {
+        this.cases.forEach((theCase) => {
+            let color;
+            switch (theCase.type) {
+                case 'blue':
+                    color = 'blue';
+                    break;
+                case 'red':
+                    color = 'darkred';
+                    break;
+            }
+            const geo = new THREE.SphereGeometry(0.3, 32, 32);
+            const mat = new THREE.MeshToonMaterial({color: color});
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.scale.set(1, 0.3, 1);
+            mesh.position.set(theCase.position.x, theCase.position.y, theCase.position.z);
+            theCase.mesh = mesh;
+            this.scene.add(mesh);
+        });
     }
 
     buildDice() {
@@ -132,17 +161,18 @@ class Board {
         this.animator.addAnimation('main-char', 'jump', 3, 0, false);
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
-        this.mainCharacter.position.set(10.4, 0.6, -10);
-        const casePos = this.cases[this.currentCase].position;
-        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.05, casePos.z);
+        this.mainCharacter.position.set(10.4, 0.7, -10);
+        const casePos = this.cases[this.currentCase].mesh.position;
+        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         this.mainCharacter.lookAt(lookPos);
+        console.log(lookPos)
         this.scene.add(this.mainCharacter);
 
     }
 
 
     buildLights() {
-        const ambient = new THREE.AmbientLight(0xfffffff, 0.2);
+        const ambient = new THREE.AmbientLight(0xfffffff, 0.5);
         this.scene.add(ambient);
 
         const light = new THREE.PointLight(0xffffff, 0.9);
@@ -160,15 +190,6 @@ class Board {
         this.scene.add(this.gameObjects.board);
     }
 
-    buildCase(x, y, z) {
-        const geo = new THREE.SphereGeometry(0.3, 32, 32);
-        const mat = new THREE.MeshToonMaterial({color: 'blue'});
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.scale.set(1, 0.3, 1);
-        mesh.position.set(x, y, z);
-        this.cases.push(mesh);
-        this.scene.add(mesh);
-    }
 
     moveToCase(index) {
         this.moveToNextCase(() => {
@@ -196,7 +217,8 @@ class Board {
 
         let position = this.mainCharacter.position.clone();
         const nextCase = this.cases[this.currentCase];
-        const casePos = nextCase.position;
+        const casePos = nextCase.mesh.position;
+        console.log({x: casePos.x, y: casePos.y+0.1, z: casePos.z})
 
         const moveAnim = new TWEEN.Tween(position).to({x: casePos.x, y: casePos.y+0.1, z: casePos.z}, 600);
         moveAnim.onUpdate(() => {

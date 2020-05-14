@@ -2,9 +2,12 @@ class Player {
 
     constructor(game) {
         this.game = game;
-        this.name = null;
-        this.id = null;
+        this.name = 'Unkown';
+        this.id = 'test';
         this.position = 0;
+        this.stars = 0;
+        this.coins = 0;
+        this.rank = 1;
         this.moveInProgress = false;
     }
 

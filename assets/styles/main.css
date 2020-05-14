@@ -42,40 +42,6 @@ html, body {
 	background-color: black;
 }
 
-
-.window {
-    display: none;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate3d(-50%, -50%, 0);
-    font-size: 50px;
-    background:  white;
-    text-align: center;
-    color: white;
-    font-size: 20px;
-    border-radius: 10px 10px 10px 10px;
-    min-width: 300px;
-}
-
-.window .title {
-    background: rgb(31, 129, 240);
-    padding: 20px;
-    border-radius: 10px 10px 0px 0px;
-}
-
-.window .close {
-    position: absolute;
-    right: 20px;
-    top: 22px;
-    cursor: pointer;
-}
-
-.window .content {
-    padding: 20px;
-    color: black;
-}
-
 #loading {
     display: none;
     position: fixed;
@@ -87,11 +53,6 @@ html, body {
     z-index: 10000;
 }
 
-
-#users {
-    display: none;
-}
-
 #ui {
     position: fixed;
     left: 0;
@@ -99,4 +60,25 @@ html, body {
     width: 100%;
     height: 100%;
     display: none;
+}
+
+.template {
+    display: none !important;
+}
+
+#ui .players-score {
+    position: fixed;
+    right: 0;
+    height: 100px;
+    padding: 10px;
+}
+
+#ui .player-score {
+    display: inline-block;
+    width: 200px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    color: white;
+    padding: 10px;
 }
