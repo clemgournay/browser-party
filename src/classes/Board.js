@@ -82,19 +82,15 @@ class Board {
 
         this.buildLights();
         this.buildBoardOBJ();
-        this.buildCase(10.1, 1, -9);
-        this.buildCase(9.9, 1, 3.9);
-        this.buildCase(8, 1, 3.9);
-        this.buildCase(5.3, 1, 3.9);
-        this.buildCase(3.3, 1, 3.9);
-        this.buildCase(2.3, 1, 3.9);
-        this.buildCase(1.3, 1, 3.9);
-        this.buildCase(0.3, 1, 3.9);
-        this.buildCase(-1.3, 1, 3.9);
-        this.buildCase(-2.3, 1, 3.9);
-        this.buildCase(-3.3, 1, 3.9);
-        this.buildCase(-4.3, 1, 3.9);
-        this.buildCase(-5.3, 1, 3.9);
+        this.buildCase(10.4, 0.6, -9.5);
+        this.buildCase(10.4, 0.6, -8.5);
+        this.buildCase(10.4, 0.6, -7.5);
+        this.buildCase(10.4, 0.6, -6.5);
+        this.buildCase(10.4, 0.6, -5.5);
+        this.buildCase(10.4, 0.6, -4.5);
+        this.buildCase(9.4, 0.6, -4.5);
+        this.buildCase(8.4, 0.6, -4.5);
+        this.buildCase(7.4, 0.6, -4.5);
 
         this.createMainCharacter();
         this.buildDice();
@@ -136,7 +132,7 @@ class Board {
         this.animator.addAnimation('main-char', 'jump', 3, 0, false);
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
-        this.mainCharacter.position.set(10, 1, -10);
+        this.mainCharacter.position.set(10.4, 0.6, -10);
         this.mainCharacter.lookAt(this.cases[this.currentCase].position);
         this.scene.add(this.mainCharacter);
 
@@ -188,6 +184,9 @@ class Board {
 
     moveToNextCase(callback) {
 
+        this.animator.playFade('main-char', 'run', 0.5, () => {
+            
+        })
         /*this.animations.mainCharacter.jumping.crossFadeTo(this.animations.mainCharacter.running, 0.5, true);
         setTimeout(() => {
             this.animations.mainCharacter.jumping.stop();
@@ -201,6 +200,9 @@ class Board {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
+            this.animator.playFade('main-char', 'idle', 0.5, () => {
+
+            });
             /*this.animations.mainCharacter.running.stop();
             this.animations.mainCharacter.running.playing = false;
             this.animations.mainCharacter.idle.play();
@@ -252,7 +254,14 @@ class Board {
 
     hitDice() {
 
-        this.animator.playFade('main-char', 'jump', 0.5, true);
+        /*this.animator.playFade('main-char', 'jump', 0.5, true, () => {
+
+        });*/
+        setTimeout(() => {
+            this.game.diceRolling = false;
+            const score = Math.floor(Math.random() * 6) + 1;
+            this.showDiceResult(score);
+        }, 500);
         //this.prepareCrossFade(this.animations.mainCharacter.idle, this.animations.mainCharacter.jumping);
         /*this.animations.mainCharacter.idle.crossFadeTo(this.animations.mainCharacter.jumping, 1, true);
         setTimeout(() => {
@@ -287,7 +296,7 @@ class Board {
             this.gameObjects.dice.rotation.z += Math.PI * 3 * delta;
         }
 
-        const relativeCameraOffset = new THREE.Vector3(-230, 450, -250);
+        const relativeCameraOffset = new THREE.Vector3(-150, 350, -250);
 
         const cameraOffset = relativeCameraOffset.applyMatrix4(this.mainCharacter.matrixWorld);
 

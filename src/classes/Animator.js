@@ -27,15 +27,16 @@ class Animator {
 
     playFade(id, endAction, duration, callback) {
         const startAction = this.currentAnimations[id];
-        const endClip = this.animations[id][endAction]
+        const endClip = this.animations[id][endAction];
         this.crossFade(id, startAction, endAction, duration);
         
         // If animation not loop, callback when animation finishes
         if (endClip.clampWhenFinished === true) {
-            const totalDuration = (duration*1000) + (endClip._clip.duration * 1000);
+            const totalDuration = (duration*1000) + (endClip._clip.duration * 1000) - 100;
             setTimeout(() => {
-                    //this.setWeight(id, endAction, 0);
-                    //this.playFade(id, startAction, duration);
+                this.setWeight(id, endAction, 0);
+                //this.crossFade(id, endAction, startAction, duration)
+                if (callback) callback();
             }, totalDuration);
         } else { // else, callback after animation cross fade
             setTimeout(() => {
