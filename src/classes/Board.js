@@ -26,6 +26,7 @@ class Board {
         this.starPrice = 0;
         this.blueCaseValue = 0;
         this.redCaseValue = 0;
+        this.enteredInBoard = false;
     }
 
     load(callback) {
@@ -38,7 +39,7 @@ class Board {
             this.blueCaseValue = board.blueCaseValue;
 
             board.cases.forEach((caseData) => {
-                this.cases.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}));
+                this.cases.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}, caseData.direction));
             });
         
 
@@ -132,6 +133,19 @@ class Board {
             const mesh = new THREE.Mesh(geo, mat);
             mesh.scale.set(1, 0.3, 1);
             mesh.position.set(theCase.position.x, theCase.position.y, theCase.position.z);
+            /*switch(theCase.direction) {
+                case 'left':
+                    mesh.rotation.y = Math.PI/2;
+                    break;
+                case 'right':
+                    mesh.rotation.y = -Math.PI/2;
+                    break;
+                case 'backward':
+                    mesh.rotation.y = -2 * (Math.PI/2);
+                    break;
+                
+            }
+            console.log(mesh.rotation);*/
             theCase.mesh = mesh;
             this.scene.add(mesh);
         });
@@ -218,55 +232,52 @@ class Board {
             this.animator.playFade('main-char', 'run', 0.2);
         }
 
-        let nextCaseIndex;
-        if (this.currentCase === this.cases.length - 1) {
-            nextCaseIndex = 0;
-        } else {
-            nextCaseIndex = this.currentCase+1;
-        }
         let position = this.mainCharacter.position.clone();
-        const nextCase = this.cases[nextCaseIndex];
-        const casePos = nextCase.mesh.position;
+        const nextIndex = (this.currentCase + 1) % this.cases.length;
+        const nextCase = this.cases[nextIndex];
+        const nextCasePos = nextCase.mesh.position;
 
-        const moveAnim = new TWEEN.Tween(position).to({x: casePos.x, y: casePos.y+0.1, z: casePos.z}, 600);
+        const moveAnim = new TWEEN.Tween(position).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
         moveAnim.onUpdate(() => {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
-            this.currentCase = nextCaseIndex
+            if (this.currentCase > 0) this.enteredInBoard = true;
+            this.currentCase = nextIndex;
             callback();
         });
         moveAnim.start();
 
-        const startRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
+        if (this.currentCase >= 0 && this.enteredInBoard) {
+  
+            let prevIndex = (this.currentCase - 1);
+            if (prevIndex < 0) prevIndex = this.cases.length - 1;
+            const prevCase = this.cases[prevIndex];
+            const curCase = this.cases[this.currentCase];
+            const prevCasePos = prevCase.mesh.position;
+            const curCasePos = curCase.mesh.position;
         
-        //const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
-        //this.mainCharacter.lookAt(lookPos);
-        
-        const endRotation = new THREE.Euler().copy(this.mainCharacter.rotation);
-        const angle = Math.atan2(( casePos.x - this.mainCharacter.position.x ), ( casePos.z - this.mainCharacter.position.z ));
-        console.log(angle);
-
-        if (angle !== 0) {
-            let rotation = this.mainCharacter.rotation;
-            const rotationAnim = new TWEEN.Tween(rotation).to({y: angle}, 300);
-            rotationAnim.onUpdate(() => {
-                this.mainCharacter.rotation.y = rotation.y;
-            });
-            rotationAnim.start();
-        //if (endRotation._y !== startRotation._y) {
-            
-            ///this.mainCharacter.rotation.copy(startRotation);
-            
-            /*let rotation = {x: startRotation._x, y: startRotation._y, z: startRotation._z};
-
-            const rotationAnim = new TWEEN.Tween(rotation).to({y: endRotation._y}, 300);
-            rotationAnim.onUpdate(() => {
-                this.mainCharacter.rotation.y = rotation.y;
-            });
-            rotationAnim.start();*/
+            const ab = new THREE.Vector3(curCasePos.x - prevCasePos.x, curCasePos.y - prevCasePos.y, curCasePos.z - prevCasePos.z);
+            const bc = new THREE.Vector3(nextCasePos.x - curCasePos.x, nextCasePos.y - curCasePos.y, nextCasePos.z - curCasePos.z);
+            const scalar = ab.dot(bc);
+            const normAB = Math.sqrt(Math.pow(ab.x, 2) + Math.pow(ab.y, 2) + Math.pow(ab.z, 2));
+            const normBC = Math.sqrt(Math.pow(bc.x, 2) + Math.pow(bc.y, 2) + Math.pow(bc.z, 2));
+            const angle = -Math.acos(scalar / normAB * normBC);
+            if (angle !== 0) {
+                this.rotateCharacter(this.mainCharacter, angle);
+            }
         }
-        
+            
+    }
+
+    rotateCharacter(character, angle) {
+        let rotation = character.rotation;
+        const endRotation = {y: character.rotation.y + angle};
+        const rotationAnim = new TWEEN.Tween(rotation).to(endRotation, 300);
+        rotationAnim.onUpdate(() => {
+            character.rotation.y = rotation.y;
+        });
+        rotationAnim.start();
     }
 
     showDice() {

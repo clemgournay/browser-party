@@ -1,9 +1,10 @@
 class Case {
 
-    constructor(game, type, position) {
+    constructor(game, type, position, direction) {
         this.game = game;
         this.type = type;
         this.position = position;
+        this.direction = direction;
         this.mesh = null;
     }
 
