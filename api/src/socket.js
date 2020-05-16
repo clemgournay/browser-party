@@ -8,14 +8,38 @@ module.exports = function (server) {
 
     const io = require('socket.io')(server);
 
-    const players = {};
-    const messages = [];
+    this.players = {};
+    this.messages = [];
+
+    this.findPlayerByControlID = (controlID) => {
+        let i = 0, found = false;
+        let id = null;
+        while (!found && i < Object.keys(this.players).length) {
+            id = Object.keys(this.players)[i];
+            if (this.players[id].controlID === controlID) found = true;
+            else i++;
+        }
+        return (found) ? this.players[id] : null;
+    }
 
     io.on('connection', (socket) => {
     
         const data = socket.request;
 
         socket.join(roomID);
+
+        if (data._query.controlID) {
+            const controlID = data._query.controlID;
+            const player = this.findPlayerByControlID(controlID);
+            console.log('CONTROLLER CONNECTED: ' + controlID);
+            if (player) {
+                console.log('PLAYER FOUND')
+                socket.on('control send', (controlData) => {
+                    console.log('CONTROL SENT', controlData)
+                    io.to(player.socketID).emit('control sent', controlData);
+                });
+            }
+        } else {
 
             const id = data._query.id;
             const name = data._query.name;
@@ -24,51 +48,50 @@ module.exports = function (server) {
             const characterID = data._query.characterID;
             const controlID = uuid.v1();
 
-            players[id] = {
+            this.players[id] = {
                 socketID: socket.id,
                 name: name,
                 position: {x: parseFloat(position[0]), y: parseFloat(position[1]), z: parseFloat(position[2])},
                 rotation: rotation,
-                characterID: characterID
+                characterID: characterID,
+                controlID: controlID
             };
 
             console.log(name + '(' + socket.id + ') joined the room ' + roomID);
-            console.log('PLAYER LIST', players);
-            socket.emit('players', players);
+            console.log('PLAYER LIST', this.players);
+            socket.emit('players', this.players);
             socket.emit('controlID', controlID);
 
-            socket.broadcast.to(roomID).emit('player logged in', {id: id, player: players[id]});
+            socket.broadcast.to(roomID).emit('player logged in', {id: id, player: this.players[id]});
 
-            socket.emit('chat messages', messages);
+            socket.emit('chat messages', this.messages);
 
-            socket.on('control send', (controlData) => {
-                socket.broadcast.emit('control sent', controlData);
-            });
+            
 
             socket.on('position update', (position) => {
-                if (players[id]) {
-                    players[id].position = position;
+                if (this.players[id]) {
+                    this.players[id].position = position;
                     socket.broadcast.to(roomID).emit('player moved', {id: id, position: position});
                 }
             });
 
             socket.on('rotation update', (rotation) => {
-                if (players[id]) {
-                    players[id].rotation = rotation;
+                if (this.players[id]) {
+                    this.players[id].rotation = rotation;
                     socket.broadcast.to(roomID).emit('player rotated', {id: id, rotation: rotation});
                 }
             });
 
             socket.on('name update', (name) => {
-                if (players[id]) {
-                    players[id].name = name;
+                if (this.players[id]) {
+                    this.players[id].name = name;
                     socket.broadcast.to(roomID).emit('name updated', {id: id, name: name});
                 }
             });
 
             socket.on('character update', (characterID) => {
-                if (players[id]) {
-                    players[id].characterID = characterID;
+                if (this.players[id]) {
+                    this.players[id].characterID = characterID;
                     socket.broadcast.to(roomID).emit('character updated', {id: id, characterID: characterID});
                 }
             });
@@ -77,7 +100,7 @@ module.exports = function (server) {
                 const message = {
                     id: uuid.v1(),
                     tempID: msg.tempID,
-                    author: {id: id, name: players[id].name},
+                    author: {id: id, name: this.players[id].name},
                     date: new Date(),
                     content: msg.content
                 };
@@ -93,19 +116,20 @@ module.exports = function (server) {
                 });*/
 
                 console.log(message);
-                messages.push(message);
+                this.messages.push(message);
                 io.to(roomID).emit('chat sent', message);
             });
 
             socket.on('disconnect', () => {
-                delete players[id];
+                delete this.players[id];
                 //const mainVoiceRoom = voiceRoom.getMainRoom();
                 //mainVoiceRoom.removePeer(id);
                 socket.leave(roomID);
                 console.log(name +  '(' + socket.id + ') disconnected from room ' + roomID);
                 socket.broadcast.to(roomID).emit('player left', id);
-                console.log('USER LIST', players);
+                console.log('USER LIST', this.players);
             });    
+        }
 
     });
 

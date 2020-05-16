@@ -82,3 +82,9 @@ html, body {
     color: white;
     padding: 10px;
 }
+
+#ui #qr-code {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}

@@ -4,6 +4,7 @@ class MainPlayer extends Player {
 
     constructor(game) {
         super(game);
+        console.log(this.moveInProgress)
         this.id = this.generateID();
     }
 

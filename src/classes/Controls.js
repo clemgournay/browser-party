@@ -4,12 +4,13 @@ class Controls {
         this.game = game;
         this.isMobile = this.checkMobile();
         this.actions = {};
+        this.context = null;
+        this.action = null;
         this.lockState = false;
     }
 
     init() {
         this.keyboard();
-        
     }
 
     keyboard() {
@@ -28,11 +29,20 @@ class Controls {
 
     onKeyPress(e) {
         switch (e.keyCode) {
-            case 32: // space
-                this.game.mainPlayer.stopDice();
+            case 13: // enter
+                this.callAction();
                 break;
 
         }
+    }
+
+    setAction(action, context) {
+        this.action = action;
+        this.context = context;
+    }
+
+    callAction() {
+        this.action.call(this.context);
     }
 
     unlockKey(key) {

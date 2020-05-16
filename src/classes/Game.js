@@ -26,7 +26,7 @@ class Game {
     }
 
     init() {
-        console.log(this.getRandomCharacter)
+        this.board.controls.setAction(this.mainPlayer.stopDice, this.mainPlayer);
         this.board.load(() => {
             this.UI.init();
             this.board.build();
@@ -75,7 +75,7 @@ class Game {
         this.players[id].id = id;
         this.players[id].position = player.position;
         this.players[id].characterID = player.characterID;
-        this.board.newCharacter(this.players[id]);
+        //this.board.newCharacter(this.players[id]);
     }
 
     movePlayer(id, position) {
@@ -97,7 +97,6 @@ class Game {
         this.mainPlayer.rotation = rotation;
         this.sync.updateRotation(rotation);
     }
-
 
 
 }

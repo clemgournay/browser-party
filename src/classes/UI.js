@@ -3,6 +3,7 @@ class UI {
     constructor(game) {
         this.game = game;
         this.view = 'ui';
+        this.QRCode = null;
     }
 
     init () {
@@ -56,6 +57,19 @@ class UI {
         this.view = id;
         $('.view').hide();
         $('#' + this.view).fadeIn();
+    }
+
+    showQRCode() {
+        this.QRCode = new QRCode(document.getElementById('qr-code'), {
+            //text: window.location.href + '/controller/#' + this.game.sync.controlID,
+            text: 'https://35cc20f6.eu.ngrok.io/controller/#' + this.game.sync.controlID,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        console.log(this.QRCode)
     }
 
 }

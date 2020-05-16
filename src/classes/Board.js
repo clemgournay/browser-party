@@ -169,7 +169,8 @@ class Board {
 
     createMainCharacter() {
         console.log(this.characterModel)
-        this.mainCharacter = this.characterModel.clone();
+        this.mainCharacter = this.characterModel;
+        //this.mainCharacter.animations = this.characterModel.animations;
         console.log(this.mainCharacter)
         this.mainCharacter.traverse((child) => {
             child.castShadows = true;
@@ -192,6 +193,7 @@ class Board {
 
     newCharacter(player) {
         const character = this.characterModel.clone();
+        //character.animations = this.characterModel.animations;
         character.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;

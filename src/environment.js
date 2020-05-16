@@ -1,8 +1,8 @@
-export const ENV = 'local';
+export const ENV = 'test';
 
 const apiURLs = {
     'local': 'http://localhost:3000',
-    'test': '',
+    'test': 'https://a2b26906.eu.ngrok.io',
     'prod': ''
 }
 

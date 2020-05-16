@@ -32,12 +32,16 @@ class Sync {
 
         this.socket.on('controlID', (controlID) => {
             this.controlID = controlID;
+            this.game.UI.showQRCode();
             console.log(this.controlID);
         });
 
-        this.socket.on('control sent', controlData => {
+        this.socket.on('control sent', (controlData) => {
             if (controlData.id === this.controlID) {
-                this.game.controls.do(controlData.action);
+                console.log('Control received', controlData)
+                if (controlData.control === 'action') {
+                    this.game.board.controls.callAction();
+                }
             }
         })
 
