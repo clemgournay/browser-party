@@ -1,6 +1,6 @@
 class Message {
 
-    constructor(app, id, author, date, content) {
+    constructor(game, id, author, date, content) {
         this.game = game;
         this.id = id;
         this.tempID = (this.id === null) ? this.generateID() : '';

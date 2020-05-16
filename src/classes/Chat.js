@@ -59,10 +59,10 @@ class Chat {
             }
         });
         $('#chat textarea').on('focus', (e) => {
-            this.game.room.controls.lock();
+            //this.game.room.controls.lock();
         })
         $('#chat textarea').on('blur', (e) => {
-            this.game.room.controls.unlock();
+            //this.game.room.controls.unlock();
         })
     }
 

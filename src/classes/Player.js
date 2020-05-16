@@ -1,14 +1,17 @@
 class Player {
 
-    constructor(game) {
+    constructor(game, name) {
         this.game = game;
-        this.name = 'Unkown';
-        this.id = 'test';
-        this.position = 0;
+        this.name = (name) ? name : 'Unkown';
+        this.id = new Date().getTime();
+        this.characterID = this.game.getRandomCharacter();
+        this.position = {x: 0, y: 0, z: 0};
         this.stars = 0;
         this.coins = 10;
         this.rank = 1;
+        this.currentCase = -1;
         this.moveInProgress = false;
+        console.log(this.characterID)
     }
 
     updateCoins(value) {
@@ -29,7 +32,6 @@ class Player {
     updateStars(value) {
         this.stars += value;
     }
-
 
 }
 

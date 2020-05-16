@@ -9,31 +9,38 @@ import { UI } from './UI.js';
 class Game {
 
     constructor () {
+        this.characters = {
+            'char1': null,
+            'char2': null
+        };
         this.board = new Board(this);
         this.mainPlayer = new MainPlayer(this);
         this.UI = new UI(this);
         this.diceRolling = false;
-        /*this.sync = new Sync(this);
-        this.voice = new Voice(this);
+        
+        this.sync = new Sync(this);
+        /*this.voice = new Voice(this);*/
         this.chat = new Chat(this);
         
-        this.players = {};*/
+        this.players = {};
     }
 
     init() {
+        console.log(this.getRandomCharacter)
         this.board.load(() => {
             this.UI.init();
             this.board.build();
             this.update();
             this.start();
+            this.sync.connect(this.mainPlayer, (players) => {
+                console.log(players)
+                this.setPlayers(players);
+                this.chat.connect();
+            })
         });
         
-        /*this.UI.init();
-        this.voice.connect(this.mainPlayer.name, this.roomname);
-        this.sync.connect(this.mainPlayer, (users) => {
-            this.setUsers(users);
-            this.chat.connect();
-        });*/
+        /*this.voice.connect(this.mainPlayer.name, this.boardname);*/
+
     }
 
     update() {
@@ -47,31 +54,38 @@ class Game {
         this.board.showDice();
     }
 
-    /*setUsers(users) {
-        for (var id in users) {
-            const user = users[id];
+    getRandomCharacter() {
+        console.log(this.characters)
+        const index = Math.floor(Math.random() + Object.keys(this.characters).length - 1);
+        return Object.keys(this.characters)[index]; 
+    }
+
+    setPlayers(players) {
+        for (var id in players) {
+            const player = players[id];
             if (id !== this.mainPlayer.id) {
-                this.newUser(id, user);
+                this.newPlayer(id, player);
             }
         } 
     }
 
-    newUser(id, user) {
-        this.users[id] = new User(user.name);
-        this.users[id].id = id;
-        this.users[id].position = user.position;
-        this.users[id].avatar = user.avatar;
-        this.room.newCharacter(this.users[id]);
+    newPlayer(id, player) {
+        console.log(player)
+        this.players[id] = new Player(this, player.name);
+        this.players[id].id = id;
+        this.players[id].position = player.position;
+        this.players[id].characterID = player.characterID;
+        this.board.newCharacter(this.players[id]);
     }
 
-    moveUser(id, position) {
-        this.users[id].position = position;
-        this.room.moveCharacter(id, position);
+    movePlayer(id, position) {
+        this.players[id].position = position;
+        this.board.moveCharacter(id, position);
     }
 
-    removeUser(id) {
-        this.room.removeCharacter(id);
-        delete this.users[id];
+    removePlayer(id) {
+        this.board.removeCharacter(id);
+        delete this.players[id];
     }
 
     updatePosition(position) {
@@ -83,7 +97,7 @@ class Game {
         this.mainPlayer.rotation = rotation;
         this.sync.updateRotation(rotation);
     }
-*/
+
 
 
 }

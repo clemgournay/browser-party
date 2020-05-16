@@ -27,6 +27,7 @@ class Board {
         this.blueCaseValue = 0;
         this.redCaseValue = 0;
         this.enteredInBoard = false;
+        this.characterModel = null;
     }
 
     load(callback) {
@@ -66,8 +67,7 @@ class Board {
 
 
             fbxLoader.load('./assets/models/Character.fbx', (obj) => {
-                this.mainCharacter = obj;
-                console.log(obj);
+                this.characterModel = obj;
             });
 
             this.textures.dice = [];
@@ -168,6 +168,9 @@ class Board {
     }
 
     createMainCharacter() {
+        console.log(this.characterModel)
+        this.mainCharacter = this.characterModel.clone();
+        console.log(this.mainCharacter)
         this.mainCharacter.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
@@ -187,6 +190,38 @@ class Board {
 
     }
 
+    newCharacter(player) {
+        const character = this.characterModel.clone();
+        character.traverse((child) => {
+            child.castShadows = true;
+            child.receiveShadows = true;
+        });
+
+        this.animator.create('player-' + player.id, character);
+        this.animator.addAnimation('player-' + player.id, 'idle', 2, 1, true);
+        this.animator.addAnimation('player-' + player.id, 'run', 0, 0, true);
+        this.animator.addAnimation('player-' + player.id, 'jump', 3, 0, false);
+
+        console.log(character)
+        character.scale.set(0.0045, 0.0045, 0.0045);
+        character.position.set(12, 0.7, -10);
+        const casePos = this.cases[player.currentCase+1].mesh.position;
+        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
+        character.lookAt(lookPos);
+        character.name = player.id;
+        this.characters[player.id] = character;
+        this.scene.add(character);
+
+    }
+
+    moveCharacter(id, position) {
+        this.characters[id].position.set(position.x, position.y, position.z);
+    }
+
+    removeCharacter(id) {
+        this.scene.remove(this.characters[id]);
+        delete this.characters[id];
+    }
 
     buildLights() {
         const ambient = new THREE.AmbientLight(0xfffffff, 0.5);

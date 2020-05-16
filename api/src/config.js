@@ -1,14 +1,5 @@
 require('dotenv').load();
 
 module.exports = {
-  APP_URL: process.env.APP_URL,
-  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
-  TWILIO_API_KEY: process.env.TWILIO_API_KEY,
-  TWILIO_API_SECRET: process.env.TWILIO_API_SECRET,
-  TWILIO_CHAT_SERVICE_SID: process.env.TWILIO_CHAT_SERVICE_SID,
-  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
-  TWILIO_CHAT_SERVICE_FRIENDLY_NAME: process.env.TWILIO_CHAT_SERVICE_FRIENDLY_NAME,
-  FB_APP_ID: process.env.FB_APP_ID,
-  FB_APP_SECRET: process.env.FB_APP_SECRET,
-  FB_CALLBACK_URL: process.env.FB_CALLBACK_URL
+  APP_URL: process.env.APP_URL
 }

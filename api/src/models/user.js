@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 // Setup schema
 const userSchema = mongoose.Schema({
-    facebookId: {
+    socialId: {
         type: String
     },
     name: {
@@ -19,13 +19,12 @@ const userSchema = mongoose.Schema({
     }
 });
 
-userSchema.statics.findOrCreate = function findOrCreate(condition, callback) {
+userSchema.statics.findOrCreate = function findOrCreate(condition, data, callback) {
     const self = this
     self.findOne(condition, (err, result) => {
-        return result ? callback(err, result) : self.create(condition, (err, result) => { return callback(err, result) })
+        return result ? callback(err, result) : self.create(data, (err, result) => { return callback(err, result) })
     });
 }
-
 // Export Contact model
 const User = module.exports = mongoose.model('user', userSchema);
 module.exports.get = function (callback, limit) {

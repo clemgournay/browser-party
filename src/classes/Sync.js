@@ -3,41 +3,56 @@ import { API_URL } from '../environment.js';
 class Sync {
 
     constructor(game) {
+    
         this.game = game;
-        this.userID = null;
-        this.username = null;
+        this.playerID = null;
+        this.playername = null;
         this.position = null;
-        this.avatar = null;
+        this.characterID = null;
+        this.controlID = null;
         this.socket = null;
     }
 
-    connect(user, callback) {
+    connect(player, callback) {
 
-        this.userID = user.id;
-        this.username = user.name;
-        this.position = user.initPos;
-        this.avatar = user.avatar;
+        this.playerID = player.id;
+        this.playername = player.name;
+        this.position = player.position;
+        this.rotation = player.rotation;
+        this.characterID = player.characterID;
 
         this.socket = io.connect(API_URL, {
-            query: 'id=' + this.userID + '&name=' + this.username + '&position=' + this.position.x + ',' + this.position.y + ',' + this.position.z
+            query: 'id=' + this.playerID + '&name=' + this.playername + '&position=' + this.position.x + ',' + this.position.y + ',' + this.position.z + '&rotation=' + this.rotation + '&characterID=' + this.characterID 
         });
 
-        this.socket.on('users', (users) => {
-            callback(users);
+        this.socket.on('players', (players) => {
+            console.log(players)
+            callback(players);
         });
 
-        this.socket.on('user logged in', (e) => {
-            console.log('User logged in: ' + e.id)
-            this.game.newUser(e.id, e.user);
+        this.socket.on('controlID', (controlID) => {
+            this.controlID = controlID;
+            console.log(this.controlID);
         });
 
-        this.socket.on('user moved', (e) => {
-            this.game.moveUser(e.id, e.position);
+        this.socket.on('control sent', controlData => {
+            if (controlData.id === this.controlID) {
+                this.game.controls.do(controlData.action);
+            }
+        })
+
+        this.socket.on('player logged in', (e) => {
+            console.log('player logged in: ' + e.id)
+            this.game.newPlayer(e.id, e.player);
         });
 
-        this.socket.on('user left', (id) => {
-            console.log('user left: ' + id);
-            this.game.removeUser(id);
+        this.socket.on('player moved', (e) => {
+            this.game.movePlayer(e.id, e.position);
+        });
+
+        this.socket.on('player left', (id) => {
+            console.log('player left: ' + id);
+            this.game.removePlayer(id);
         });
         
     }
