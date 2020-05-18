@@ -1,4 +1,4 @@
-export const ENV = 'test';
+export const ENV = 'local';
 
 const apiURLs = {
     'local': 'http://localhost:3000',

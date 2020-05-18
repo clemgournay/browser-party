@@ -33,7 +33,6 @@ class Game {
             this.update();
             this.start();
             this.sync.connect(this.mainPlayer, (players) => {
-                console.log(players)
                 this.setPlayers(players);
                 this.chat.connect();
             })
@@ -55,7 +54,6 @@ class Game {
     }
 
     getRandomCharacter() {
-        console.log(this.characters)
         const index = Math.floor(Math.random() + Object.keys(this.characters).length - 1);
         return Object.keys(this.characters)[index]; 
     }
@@ -66,11 +64,11 @@ class Game {
             if (id !== this.mainPlayer.id) {
                 this.newPlayer(id, player);
             }
-        } 
+        }
+        console.log('[PLAYERS]', this.players);
     }
 
     newPlayer(id, player) {
-        console.log(player)
         this.players[id] = new Player(this, player.name);
         this.players[id].id = id;
         this.players[id].position = player.position;

@@ -26,7 +26,6 @@ class Sync {
         });
 
         this.socket.on('players', (players) => {
-            console.log(players)
             callback(players);
         });
 

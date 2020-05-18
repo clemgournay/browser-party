@@ -5,13 +5,12 @@ class Player {
         this.name = (name) ? name : 'Unkown';
         this.id = new Date().getTime();
         this.characterID = this.game.getRandomCharacter();
-        this.position = {x: 0, y: 0, z: 0};
+        this.position = {block: 0, way: 0, case: 0};
+        this.prevPosition = JSON.parse(JSON.stringify(this.position));
         this.stars = 0;
         this.coins = 10;
         this.rank = 1;
-        this.currentCase = -1;
         this.moveInProgress = false;
-        console.log(this.characterID)
     }
 
     updateCoins(value) {

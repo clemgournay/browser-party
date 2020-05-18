@@ -21,7 +21,6 @@ class Board {
         this.characters = {};
         this.clock = new THREE.Clock();
         this.cases = [];
-        this.currentCase = -1;
         this.score = 0;
         this.starPrice = 0;
         this.blueCaseValue = 0;
@@ -39,10 +38,18 @@ class Board {
             this.redCaseValue = board.redCaseValue;
             this.blueCaseValue = board.blueCaseValue;
 
-            board.cases.forEach((caseData) => {
-                this.cases.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}, caseData.direction));
+            board.cases.forEach((block) => {
+                const theBlock = [];
+                block.forEach((way) => {
+                    const theWay = [];
+                    way.forEach((caseData) => {
+                        theWay.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}, caseData.direction));
+                    });
+                    theBlock.push(theWay);
+                });
+                this.cases.push(theBlock);
             });
-        
+            console.log('[BOARD]', this.cases);
 
             this.loader.onStart = (url, itemsLoaded, itemsTotal) => {
                 console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
@@ -115,39 +122,30 @@ class Board {
     }
 
     buildCases() {
-        this.cases.forEach((theCase) => {
-            let color;
-            switch (theCase.type) {
-                case 'blue':
-                    color = 'blue';
-                    break;
-                case 'red':
-                    color = 'darkred';
-                    break;
-                case 'star':
-                    color = 'yellow';
-                    break;
-            }
-            const geo = new THREE.SphereGeometry(0.3, 32, 32);
-            const mat = new THREE.MeshToonMaterial({color: color});
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.scale.set(1, 0.3, 1);
-            mesh.position.set(theCase.position.x, theCase.position.y, theCase.position.z);
-            /*switch(theCase.direction) {
-                case 'left':
-                    mesh.rotation.y = Math.PI/2;
-                    break;
-                case 'right':
-                    mesh.rotation.y = -Math.PI/2;
-                    break;
-                case 'backward':
-                    mesh.rotation.y = -2 * (Math.PI/2);
-                    break;
-                
-            }
-            console.log(mesh.rotation);*/
-            theCase.mesh = mesh;
-            this.scene.add(mesh);
+        this.cases.forEach((block) => {
+            block.forEach((way) => {
+                way.forEach((theCase) => {
+                    let color;
+                    switch (theCase.type) {
+                        case 'blue':
+                            color = 'blue';
+                            break;
+                        case 'red':
+                            color = 'darkred';
+                            break;
+                        case 'star':
+                            color = 'yellow';
+                            break;
+                    }
+                    const geo = new THREE.SphereGeometry(0.3, 32, 32);
+                    const mat = new THREE.MeshToonMaterial({color: color});
+                    const mesh = new THREE.Mesh(geo, mat);
+                    mesh.scale.set(1, 0.3, 1);
+                    mesh.position.set(theCase.position.x, theCase.position.y, theCase.position.z);
+                    theCase.mesh = mesh;
+                    this.scene.add(mesh);
+                });
+            });
         });
     }
 
@@ -168,10 +166,7 @@ class Board {
     }
 
     createMainCharacter() {
-        console.log(this.characterModel)
         this.mainCharacter = this.characterModel;
-        //this.mainCharacter.animations = this.characterModel.animations;
-        console.log(this.mainCharacter)
         this.mainCharacter.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
@@ -184,7 +179,8 @@ class Board {
 
         this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
         this.mainCharacter.position.set(10.4, 0.7, -10);
-        const casePos = this.cases[this.currentCase+1].mesh.position;
+        const nextPos = this.getNextCases(this.game.mainPlayer)[0];
+        const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].mesh.position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         this.mainCharacter.lookAt(lookPos);
         this.scene.add(this.mainCharacter);
@@ -207,7 +203,8 @@ class Board {
         console.log(character)
         character.scale.set(0.0045, 0.0045, 0.0045);
         character.position.set(12, 0.7, -10);
-        const casePos = this.cases[player.currentCase+1].mesh.position;
+        const nextPos = this.getNextCases(player)[0];
+        const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].mesh.position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         character.lookAt(lookPos);
         character.name = player.id;
@@ -250,7 +247,8 @@ class Board {
             if (index === 0) {
                 console.log('goal')
                 this.animator.playFade('main-char', 'idle', 0.2);
-                this.cases[this.currentCase].action();
+                const pos = this.game.mainPlayer.position;
+                this.cases[pos.block][pos.way][pos.case].action();
                 const charPos = this.mainCharacter.position.clone();
                 this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
                 this.game.mainPlayer.moveInProgress = false;
@@ -261,45 +259,73 @@ class Board {
         });
     }
 
+    getNextCases(player) {
+        const pos = player.position;
+        let nextBlockIndex = pos.block;
+        let nextWayIndex = pos.way;
+        let nextCaseIndex = pos.case + 1;
+        const results = [];
+        if (nextCaseIndex >= this.cases[nextBlockIndex][nextWayIndex].length) {
+            nextCaseIndex = 0;
+            nextBlockIndex++;
+            if (nextBlockIndex >= this.cases.length) {
+                nextBlockIndex = 0;
+                nextWayIndex = 0;
+            }
+            for (let i = 0; i < this.cases[nextBlockIndex].length; i++) {
+                results.push({block: nextBlockIndex, way: i, case: nextCaseIndex});
+            };
+        } else {
+            results.push({block: nextBlockIndex, way: nextWayIndex, case: nextCaseIndex});
+        }
+        return results;
+    }
 
+    choseWay() {
+        return confirm('Way 1 ?') ? 1 : 0;
+    }
 
     moveToNextCase(callback) {
         
         if (this.animator.currentAnimations['main-char'] !== 'run') {
             this.animator.playFade('main-char', 'run', 0.2);
         }
-
-        let position = this.mainCharacter.position.clone();
-        const nextIndex = (this.currentCase + 1) % this.cases.length;
-        const nextCase = this.cases[nextIndex];
+        
+        const nextPositions = this.getNextCases(this.game.mainPlayer);
+        let resultIndex = 0;
+        if (nextPositions.length > 1) {
+            resultIndex = this.choseWay();
+        }
+        const nextPos = nextPositions[resultIndex];
+        const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
         const nextCasePos = nextCase.mesh.position;
 
+        let position = this.mainCharacter.position.clone();
         const moveAnim = new TWEEN.Tween(position).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
         moveAnim.onUpdate(() => {
             this.mainCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
-            if (this.currentCase > 0) this.enteredInBoard = true;
-            this.currentCase = nextIndex;
+            this.game.mainPlayer.updatePosition(nextPos);
+            if (this.game.mainPlayer.position.case >= 0) this.enteredInBoard = true;
             callback();
         });
         moveAnim.start();
 
-        if (this.currentCase >= 0 && this.enteredInBoard) {
+        if (this.enteredInBoard) {
   
-            let prevIndex = (this.currentCase - 1);
-            if (prevIndex < 0) prevIndex = this.cases.length - 1;
-            const prevCase = this.cases[prevIndex];
-            const curCase = this.cases[this.currentCase];
+            const prevPos = this.game.mainPlayer.prevPosition;
+            const curPos = this.game.mainPlayer.position;
+            const prevCase = this.cases[prevPos.block][prevPos.way][prevPos.case];
+            const curCase = this.cases[curPos.block][curPos.way][curPos.case];
             const prevCasePos = prevCase.mesh.position;
             const curCasePos = curCase.mesh.position;
         
             const ab = new THREE.Vector3(curCasePos.x - prevCasePos.x, curCasePos.y - prevCasePos.y, curCasePos.z - prevCasePos.z);
             const bc = new THREE.Vector3(nextCasePos.x - curCasePos.x, nextCasePos.y - curCasePos.y, nextCasePos.z - curCasePos.z);
-            const scalar = ab.dot(bc);
-            const normAB = Math.sqrt(Math.pow(ab.x, 2) + Math.pow(ab.y, 2) + Math.pow(ab.z, 2));
-            const normBC = Math.sqrt(Math.pow(bc.x, 2) + Math.pow(bc.y, 2) + Math.pow(bc.z, 2));
-            const angle = -Math.acos(scalar / normAB * normBC);
+            
+            let angle = ab.angleTo(bc)
+            if (resultIndex === 0) angle = -angle;
             if (angle !== 0) {
                 this.rotateCharacter(this.mainCharacter, angle);
             }
@@ -377,7 +403,6 @@ class Board {
     }
 
     showDiceResult(score) {
-        console.log(score);
 
         const startRotation = new THREE.Euler().copy(this.gameObjects.dice.rotation);
 

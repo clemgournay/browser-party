@@ -4,7 +4,6 @@ class MainPlayer extends Player {
 
     constructor(game) {
         super(game);
-        console.log(this.moveInProgress)
         this.id = this.generateID();
     }
 
@@ -17,6 +16,15 @@ class MainPlayer extends Player {
             this.moveInProgress = true;
             this.game.board.hitDice();
         }
+    }
+
+    updatePosition(nextPos) {
+        this.prevPosition = JSON.parse(JSON.stringify(this.position));
+        this.position = {
+            block: nextPos.block,
+            way: nextPos.way,
+            case: nextPos.case
+        };
     }
 
 }

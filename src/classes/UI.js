@@ -69,7 +69,6 @@ class UI {
             colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.H
         });
-        console.log(this.QRCode)
     }
 
 }
