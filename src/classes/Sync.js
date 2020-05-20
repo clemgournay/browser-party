@@ -18,11 +18,10 @@ class Sync {
         this.playerID = player.id;
         this.playername = player.name;
         this.position = player.position;
-        this.rotation = player.rotation;
         this.characterID = player.characterID;
 
         this.socket = io.connect(API_URL, {
-            query: 'id=' + this.playerID + '&name=' + this.playername + '&position=' + this.position.x + ',' + this.position.y + ',' + this.position.z + '&rotation=' + this.rotation + '&characterID=' + this.characterID 
+            query: 'id=' + this.playerID + '&name=' + this.playername + '&position=' + this.position.block + ',' + this.position.way + ',' + this.position.case + '&rotation=' + this.rotation + '&characterID=' + this.characterID 
         });
 
         this.socket.on('players', (players) => {
@@ -60,8 +59,8 @@ class Sync {
         
     }
 
-    updatePosition(position) {
-        if (this.socket) this.socket.emit('position update', {x: position.x, y: position.y, z: position.z});
+    updateMainPlayerPosition(position) {
+        if (this.socket) this.socket.emit('position update', this.game.mainPlayer.position);
     }
 
 }

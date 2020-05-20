@@ -25,6 +25,15 @@ class MainPlayer extends Player {
             way: nextPos.way,
             case: nextPos.case
         };
+        this.game.updateMainPlayerPosition();
+    }
+
+    buyStars(value) {
+        const price = value * this.game.board.starPrice;
+        this.coins -= price;
+        console.log(this.coins)
+        this.updateStars(value);
+        this.game.UI.updatePlayerScore(this);
     }
 
 }

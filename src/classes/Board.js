@@ -109,7 +109,7 @@ class Board {
         this.buildLights();
         this.buildBoardOBJ();
         this.buildCases();
-        this.createMainCharacter();
+        this.newCharacter(this.game.mainPlayer);
         this.buildDice();
 
         this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -165,50 +165,32 @@ class Board {
         this.scene.add(this.gameObjects.dice);
     }
 
-    createMainCharacter() {
-        this.mainCharacter = this.characterModel;
-        this.mainCharacter.traverse((child) => {
-            child.castShadows = true;
-            child.receiveShadows = true;
-        });
-
-        this.animator.create('main-char', this.mainCharacter);
-        this.animator.addAnimation('main-char', 'idle', 2, 1, true);
-        this.animator.addAnimation('main-char', 'run', 0, 0, true);
-        this.animator.addAnimation('main-char', 'jump', 3, 0, false);
-
-        this.mainCharacter.scale.set(0.0045, 0.0045, 0.0045);
-        this.mainCharacter.position.set(10.4, 0.7, -10);
-        const nextPos = this.getNextCases(this.game.mainPlayer)[0];
-        const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].mesh.position;
-        const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
-        this.mainCharacter.lookAt(lookPos);
-        this.scene.add(this.mainCharacter);
-
-    }
-
     newCharacter(player) {
-        const character = this.characterModel.clone();
-        //character.animations = this.characterModel.animations;
+
+        const character = this.characterModel;
         character.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
         });
 
-        this.animator.create('player-' + player.id, character);
-        this.animator.addAnimation('player-' + player.id, 'idle', 2, 1, true);
-        this.animator.addAnimation('player-' + player.id, 'run', 0, 0, true);
-        this.animator.addAnimation('player-' + player.id, 'jump', 3, 0, false);
+        this.animator.create(player.id, character);
+        this.animator.addAnimation(player.id, 'idle', 2, 1, true);
+        this.animator.addAnimation(player.id, 'run', 0, 0, true);
+        this.animator.addAnimation(player.id, 'jump', 3, 0, false);
 
-        console.log(character)
         character.scale.set(0.0045, 0.0045, 0.0045);
-        character.position.set(12, 0.7, -10);
+        character.position.set(10.4, 0.7, -10);
         const nextPos = this.getNextCases(player)[0];
         const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].mesh.position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         character.lookAt(lookPos);
         character.name = player.id;
+
         this.characters[player.id] = character;
+        if (player.constructor.name === 'MainPlayer') {
+            this.mainCharacter = character;
+        }
+
         this.scene.add(character);
 
     }
@@ -246,13 +228,16 @@ class Board {
         this.moveToNextCase(() => {
             if (index === 0) {
                 console.log('goal')
-                this.animator.playFade('main-char', 'idle', 0.2);
-                const pos = this.game.mainPlayer.position;
-                this.cases[pos.block][pos.way][pos.case].action();
-                const charPos = this.mainCharacter.position.clone();
-                this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
-                this.game.mainPlayer.moveInProgress = false;
-                this.showDice();
+                const currentPlayer = this.game.currentPlayer;
+                const currentCharacter = this.characters[currentPlayer.id];
+                this.animator.playFade(currentPlayer.id, 'idle', 0.2);
+                const pos = currentPlayer.position;
+                this.cases[pos.block][pos.way][pos.case].action(() => {
+                    const charPos = currentCharacter.position.clone();
+                    this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
+                    currentPlayer.moveInProgress = false;
+                    this.showDice();
+                });
             } else {
                 this.moveToCase(index-1)
             }
@@ -287,11 +272,13 @@ class Board {
 
     moveToNextCase(callback) {
         
-        if (this.animator.currentAnimations['main-char'] !== 'run') {
-            this.animator.playFade('main-char', 'run', 0.2);
+        const currentPlayer = this.game.currentPlayer;
+        const currentCharacter = this.characters[currentPlayer.id];
+        if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
+            this.animator.playFade(currentPlayer.id, 'run', 0.2);
         }
         
-        const nextPositions = this.getNextCases(this.game.mainPlayer);
+        const nextPositions = this.getNextCases(currentPlayer);
         let resultIndex = 0;
         if (nextPositions.length > 1) {
             resultIndex = this.choseWay();
@@ -300,14 +287,14 @@ class Board {
         const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
         const nextCasePos = nextCase.mesh.position;
 
-        let position = this.mainCharacter.position.clone();
+        let position = currentCharacter.position.clone();
         const moveAnim = new TWEEN.Tween(position).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
         moveAnim.onUpdate(() => {
-            this.mainCharacter.position.set(position.x, position.y, position.z);
+            currentCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
-            this.game.mainPlayer.updatePosition(nextPos);
-            if (this.game.mainPlayer.position.case >= 0) this.enteredInBoard = true;
+            currentPlayer.updatePosition(nextPos);
+            if (currentPlayer.position.case >= 0) this.enteredInBoard = true;
             callback();
         });
         moveAnim.start();
@@ -327,7 +314,7 @@ class Board {
             let angle = ab.angleTo(bc)
             if (resultIndex === 0) angle = -angle;
             if (angle !== 0) {
-                this.rotateCharacter(this.mainCharacter, angle);
+                this.rotateCharacter(currentCharacter, angle);
             }
         }
             
@@ -344,8 +331,10 @@ class Board {
     }
 
     showDice() {
+        const currentPlayer = this.game.currentPlayer;
+        const currentCharacter = this.characters[currentPlayer.id];
         let position = this.gameObjects.dice.position.clone();
-        const anim = new TWEEN.Tween(position).to({x: position.x, y: this.mainCharacter.position.y+1.1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
+        const anim = new TWEEN.Tween(position).to({x: position.x, y: currentCharacter.position.y+1.1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
         anim.onUpdate(() => {
             this.gameObjects.dice.position.set(position.x, position.y, position.z);
         });
@@ -367,8 +356,8 @@ class Board {
     }
 
     hitDice() {
-
-        this.animator.playFade('main-char', 'jump', 0.2);
+        const id = this.game.currentPlayer.id;
+        this.animator.playFade(id, 'jump', 0.2);
         setTimeout(() => {
             this.game.diceRolling = false;
             const score = Math.floor(Math.random() * 6) + 1;
@@ -388,12 +377,15 @@ class Board {
 
         const relativeCameraOffset = new THREE.Vector3(-150, 330, -250);
 
-        const cameraOffset = relativeCameraOffset.applyMatrix4(this.mainCharacter.matrixWorld);
+        const currentPlayer = this.game.currentPlayer;
+        const currentCharacter = this.characters[currentPlayer.id];
+        const cameraOffset = relativeCameraOffset.applyMatrix4(currentCharacter.matrixWorld);
 
         this.camera.position.x = cameraOffset.x;
         this.camera.position.y = cameraOffset.y;
         this.camera.position.z = cameraOffset.z;
-        this.camera.lookAt(this.mainCharacter.position);
+        this.camera.lookAt(currentCharacter.position);
+        
 
         this.animator.update(delta);
         this.renderer.render(this.scene, this.camera);
@@ -445,8 +437,6 @@ class Board {
             }, 1000);
         });
         anim.start();
-        
-    
     }
     
     events() {

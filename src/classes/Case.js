@@ -8,19 +8,29 @@ class Case {
         this.mesh = null;
     }
 
-    action () {
+    action (callback) {
         switch(this.type) {
             case 'blue':
                 this.game.mainPlayer.updateCoins(this.game.board.blueCaseValue);
+                callback();
                 break;
             case 'red':
                 this.game.mainPlayer.updateCoins(this.game.board.redCaseValue);
+                callback();
                 break;
             case 'star':
-                if (this.game.mainPlayer.canBuyStar()) {
-                    this.game.mainPlayer.updateStars(1);
+                if (this.game.mainPlayer.canBuyStars(1)) {
+                    console.log(this.game.messageSystem)
+                    this.game.messageSystem.confirm('Toad', 'Do you want to buy a star for ' + this.game.board.starPrice + ' coins ?', () => {
+                        this.game.mainPlayer.buyStars(1);
+                        callback();
+                    }, () => {
+                        callback();
+                    });
                 } else {
-                    alert('You dont have enough coins to buy a star !');
+                    this.game.messageSystem.alert('You dont have enough coins to buy a star !', () => {
+                        callback();
+                    });
                 }
                 break;
         }

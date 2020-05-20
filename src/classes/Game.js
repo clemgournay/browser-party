@@ -1,10 +1,11 @@
 import { Board } from './Board.js';
 import { Player } from './Player.js';
 import { MainPlayer } from './MainPlayer.js'; 
-import { Voice } from './Voice.js'; 
+import { MessageSystem } from './MessageSystem.js';
 import { Sync } from './Sync.js';
 import { Chat } from './Chat.js';
 import { UI } from './UI.js';
+
 
 class Game {
 
@@ -17,29 +18,32 @@ class Game {
         this.mainPlayer = new MainPlayer(this);
         this.UI = new UI(this);
         this.diceRolling = false;
+        this.messageSystem = new MessageSystem(this);
         
         this.sync = new Sync(this);
-        /*this.voice = new Voice(this);*/
         this.chat = new Chat(this);
         
         this.players = {};
+        this.playersOrder = [];
+        this.playerTurn = 0;
+        this.currentPlayer = null;
     }
 
     init() {
+
+        
         this.board.controls.setAction(this.mainPlayer.stopDice, this.mainPlayer);
+
         this.board.load(() => {
             this.UI.init();
-            this.board.build();
-            this.update();
-            this.start();
             this.sync.connect(this.mainPlayer, (players) => {
                 this.setPlayers(players);
+                this.board.build();
+                this.update();
+                this.start();
                 this.chat.connect();
-            })
+            });
         });
-        
-        /*this.voice.connect(this.mainPlayer.name, this.boardname);*/
-
     }
 
     update() {
@@ -59,13 +63,21 @@ class Game {
     }
 
     setPlayers(players) {
+        this.playersOrder = [this.mainPlayer.id];
         for (var id in players) {
             const player = players[id];
             if (id !== this.mainPlayer.id) {
+                this.playersOrder.push(id);
                 this.newPlayer(id, player);
+            } else {
+                this.players[id] = this.mainPlayer;
             }
         }
+        const currPlayerID = this.playersOrder[this.playerTurn];
+        this.players[currPlayerID].myTurn = true;
+        this.currentPlayer = this.players[currPlayerID];
         console.log('[PLAYERS]', this.players);
+        console.log('[CURRENT PLAYER]', this.currentPlayer);
     }
 
     newPlayer(id, player) {
@@ -73,7 +85,7 @@ class Game {
         this.players[id].id = id;
         this.players[id].position = player.position;
         this.players[id].characterID = player.characterID;
-        //this.board.newCharacter(this.players[id]);
+        this.board.newCharacter(this.players[id]);
     }
 
     movePlayer(id, position) {
@@ -86,14 +98,8 @@ class Game {
         delete this.players[id];
     }
 
-    updatePosition(position) {
-        this.mainPlayer.position = position;
-        this.sync.updatePosition(position);
-    }
-
-    updateRotation(rotation) {
-        this.mainPlayer.rotation = rotation;
-        this.sync.updateRotation(rotation);
+    updateMainPlayerPosition() {
+        this.sync.updateMainPlayerPosition();
     }
 
 

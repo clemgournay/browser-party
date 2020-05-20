@@ -11,6 +11,7 @@ class Player {
         this.coins = 10;
         this.rank = 1;
         this.moveInProgress = false;
+        this.myTurn = false;
     }
 
     updateCoins(value) {
@@ -23,9 +24,9 @@ class Player {
         }
     }
 
-    canBuyStar() {
-        console.log(this.coins, this.game.board.starPrice)
-        return (this.coins >= this.game.board.starPrice);
+    canBuyStars(value) {
+        const price = value * this.game.board.starPrice;
+        return (this.coins >= price);
     }
 
     updateStars(value) {

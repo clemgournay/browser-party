@@ -62,7 +62,7 @@ class UI {
     showQRCode() {
         this.QRCode = new QRCode(document.getElementById('qr-code'), {
             //text: window.location.href + '/controller/#' + this.game.sync.controlID,
-            text: 'https://35cc20f6.eu.ngrok.io/controller/#' + this.game.sync.controlID,
+            text: 'https://c8eb049f.eu.ngrok.io/controller/#' + this.game.sync.controlID,
             width: 128,
             height: 128,
             colorDark : "#000000",
