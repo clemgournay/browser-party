@@ -44,15 +44,14 @@ module.exports = function (server) {
             const id = data._query.id;
             const name = data._query.name;
             const position = data._query.position.split(',');
-            const rotation = data._query.rotation;
+            console.log(position)
             const characterID = data._query.characterID;
             const controlID = uuid.v1();
 
             this.players[id] = {
                 socketID: socket.id,
                 name: name,
-                position: {x: parseFloat(position[0]), y: parseFloat(position[1]), z: parseFloat(position[2])},
-                rotation: rotation,
+                position: {block: parseFloat(position[0]), way: parseFloat(position[1]), case: parseFloat(position[2])},
                 characterID: characterID,
                 controlID: controlID
             };
@@ -67,18 +66,10 @@ module.exports = function (server) {
             socket.emit('chat messages', this.messages);
 
             
-
             socket.on('position update', (position) => {
                 if (this.players[id]) {
                     this.players[id].position = position;
                     socket.broadcast.to(roomID).emit('player moved', {id: id, position: position});
-                }
-            });
-
-            socket.on('rotation update', (rotation) => {
-                if (this.players[id]) {
-                    this.players[id].rotation = rotation;
-                    socket.broadcast.to(roomID).emit('player rotated', {id: id, rotation: rotation});
                 }
             });
 
