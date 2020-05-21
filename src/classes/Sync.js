@@ -31,7 +31,7 @@ class Sync {
         this.socket.on('controlID', (controlID) => {
             this.controlID = controlID;
             this.game.UI.showQRCode();
-            console.log(this.controlID);
+            console.log('[CONTROLLER ID] ', this.controlID);
         });
 
         this.socket.on('control sent', (controlData) => {

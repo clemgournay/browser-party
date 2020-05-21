@@ -102,7 +102,7 @@ html, body {
     width: 500px;
     height: 100%;
     margin: auto;
-    background: rgba(60, 100, 243, 0.8);
+    background: rgba(62, 105, 255, 0.5);
     border-radius: 15px;
     box-sizing: border-box;
     padding: 20px;
@@ -110,7 +110,18 @@ html, body {
     text-shadow: 0px 0px 2px black;
     transition: all 0.5s ease-out;
     transform: scale(0);
+    border: 5px solid white;
 }
 #message-system .message.show {
     transform: none;
+}
+
+#message-system .message .btn {
+    padding: 5px;
+}
+
+#message-system .message .btn.selected {
+    background: white;
+    color: #017cff;
+    text-shadow: none;
 }

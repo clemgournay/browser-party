@@ -31,7 +31,6 @@ class Animator {
         this.setWeight(id, endAction, 1);
         endClip.time = 0;
         startClip.crossFadeTo(endClip, duration);
-        console.log(endAction)
         this.currentAnimations[id] = endAction;
         if (endClip.clampWhenFinished) {
             const totalDuration = (duration*1000) + (endClip._clip.duration * 1000) - 100;

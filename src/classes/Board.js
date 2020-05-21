@@ -16,6 +16,7 @@ class Board {
         this.animator = new Animator(this.game);
         this.gameObjects = {};
         this.textures = {};
+        this.models = {};
         this.mainCharacter = new THREE.Group();
         this.loader = new THREE.LoadingManager();
         this.characters = {};
@@ -74,7 +75,11 @@ class Board {
 
 
             fbxLoader.load('./assets/models/Character.fbx', (obj) => {
-                this.characterModel = obj;
+                this.models.character = obj;
+            });
+
+            fbxLoader.load('./assets/models/Arrow.fbx', (obj) => {
+                this.models.arrow = obj;
             });
 
             this.textures.dice = [];
@@ -167,7 +172,7 @@ class Board {
 
     newCharacter(player) {
 
-        const character = this.characterModel;
+        const character = this.models.character;
         character.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
@@ -193,6 +198,18 @@ class Board {
 
         this.scene.add(character);
 
+    }
+
+    newArrow(theCase) {
+        const arrow = this.models.arrow;
+        arrow.traverse((child) => {
+            child.castShadows = true;
+            child.receiveShadows = true;
+        });
+        const casePos = theCase.mesh.position;
+        arrow.position.set(casePos.x, casePos.y+0.1, casePos.z);
+        arrow.scale.set(0.01, 0.01, 0.01);
+        this.scene.add(arrow);
     }
 
     moveCharacter(id, position) {
@@ -266,26 +283,57 @@ class Board {
         return results;
     }
 
-    choseWay() {
-        return confirm('Way 1 ?') ? 1 : 0;
-    }
-
-    moveToNextCase(callback) {
+    choseWay(nextPositions, callback) {
+        for (let i = 0; i < nextPositions.length; i++) {
+            const nextPosition = nextPositions[i];
+            const nextCase = this.cases[nextPosition.block][nextPosition.way][nextPosition.case];
+            this.newArrow(nextCase);
+        }
         
         const currentPlayer = this.game.currentPlayer;
+        this.animator.playFade(currentPlayer.id, 'idle', 0.2);
+        this.controls.setAction('left', this, () => {
+            this.controls.removeAction('left');
+            this.controls.removeAction('right');
+            callback(1);
+        });
+        this.controls.setAction('right', this, () => {
+            this.controls.removeAction('left');
+            this.controls.removeAction('right');
+            callback(0);
+        });
+    }
+
+    moveToNextCase(richedNextCase) {
+        
+        const currentPlayer = this.game.currentPlayer;
+        
+        const nextPositions = this.getNextCases(currentPlayer);
+        if (nextPositions.length > 1) {
+            this.choseWay(nextPositions, (resultIndex) => {
+                this.wayChosen(nextPositions, resultIndex, richedNextCase);
+            });
+        } else {
+            if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
+                this.animator.playFade(currentPlayer.id, 'run', 0.2);
+            }
+            this.wayChosen(nextPositions, 0, richedNextCase);
+        }
+        
+            
+    }
+
+    wayChosen (nextPositions, resultIndex, richedNextCase) {
+        
+        const nextPos = nextPositions[resultIndex];
+        const currentPlayer = this.game.currentPlayer;
         const currentCharacter = this.characters[currentPlayer.id];
+        const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
+        const nextCasePos = nextCase.mesh.position;
+
         if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
             this.animator.playFade(currentPlayer.id, 'run', 0.2);
         }
-        
-        const nextPositions = this.getNextCases(currentPlayer);
-        let resultIndex = 0;
-        if (nextPositions.length > 1) {
-            resultIndex = this.choseWay();
-        }
-        const nextPos = nextPositions[resultIndex];
-        const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
-        const nextCasePos = nextCase.mesh.position;
 
         let position = currentCharacter.position.clone();
         const moveAnim = new TWEEN.Tween(position).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
@@ -295,7 +343,7 @@ class Board {
         moveAnim.onComplete(() => {
             currentPlayer.updatePosition(nextPos);
             if (currentPlayer.position.case >= 0) this.enteredInBoard = true;
-            callback();
+            richedNextCase();
         });
         moveAnim.start();
 
@@ -317,7 +365,6 @@ class Board {
                 this.rotateCharacter(currentCharacter, angle);
             }
         }
-            
     }
 
     rotateCharacter(character, angle) {
@@ -339,6 +386,7 @@ class Board {
             this.gameObjects.dice.position.set(position.x, position.y, position.z);
         });
         anim.onComplete(() => {
+            this.controls.setAction('validate', this.game.mainPlayer, this.game.mainPlayer.stopDice);
             this.game.diceRolling = true;
         });
         anim.start();

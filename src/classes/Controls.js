@@ -4,8 +4,7 @@ class Controls {
         this.game = game;
         this.isMobile = this.checkMobile();
         this.actions = {};
-        this.context = null;
-        this.action = null;
+        this.ctx = {};
         this.lockState = false;
     }
 
@@ -15,8 +14,14 @@ class Controls {
 
     keyboard() {
 
-        $(document).on('keypress', (e) => {
-            if (!this.lockState) this.onKeyPress(e);
+        $(document).on('keydown', (e) => {
+            if (!this.lockState) {
+                this.onKeyPress(e);
+                this.lockState = true;
+                setTimeout(() => {
+                    this.lockState = false;
+                }, 200);
+            }
         });
 
     }
@@ -30,32 +35,36 @@ class Controls {
     onKeyPress(e) {
         switch (e.keyCode) {
             case 13: // enter
-                this.callAction();
+                this.callAction('validate');
+                break;
+            case 40: //down
+                this.callAction('down');
+                break;
+            case 38: //up
+                this.callAction('up');
+                break;
+            case 37: //left
+                this.callAction('left');
+                break;
+            case 39: //right
+                this.callAction('right');
                 break;
 
         }
     }
 
-    setAction(action, context) {
-        this.action = action;
-        this.context = context;
-    }
-
-    callAction() {
-        this.action.call(this.context);
-    }
-
-    unlockKey(key) {
-        delete this.actions[key];
+    setAction(action, context, actionFunc) {
+        this.actions[action] = actionFunc;
+        this.ctx[action] = context;
     }
     
-    lock() {
-        this.lockState = true;
-        this.actions = {};
+    removeAction(action) {
+        delete this.actions[action];
+        delete this.ctx[action];
     }
 
-    unlock() {
-        this.lockState = false;
+    callAction(action) {
+        if (this.actions[action]) this.actions[action].call(this.ctx[action]);
     }
 
 }

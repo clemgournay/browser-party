@@ -31,9 +31,6 @@ class Game {
 
     init() {
 
-        
-        this.board.controls.setAction(this.mainPlayer.stopDice, this.mainPlayer);
-
         this.board.load(() => {
             this.UI.init();
             this.sync.connect(this.mainPlayer, (players) => {

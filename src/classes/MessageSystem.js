@@ -21,6 +21,11 @@ class MessageSystem {
         this.$dom.find('.text').html(this.message);
         $('#message-system .messages').append(this.$dom);
         this.show();
+        this.game.board.controls.setAction('down', this, this.nextChoice);
+        this.game.board.controls.setAction('up', this, this.prevChoice);
+        this.game.board.controls.setAction('validate', this, () => {
+            this.$dom.find('.btn.selected').click();
+        });
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
@@ -39,6 +44,9 @@ class MessageSystem {
         this.$dom.find('.text').html(this.message);
         $('#message-system .messages').append(this.$dom);
         this.show();
+        this.game.board.controls.setAction('validate', this, () => {
+            this.$dom.find('.btn.selected').click();
+        });
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
@@ -51,6 +59,29 @@ class MessageSystem {
 
     close() {
         this.$dom.remove();
+        this.game.board.controls.removeAction('validate');
+        this.game.board.controls.removeAction('down');
+        this.game.board.controls.removeAction('up');
+    }
+
+    nextChoice() {
+        const $choices = this.$dom.find('.controls .btn');
+        let current = $choices.index(this.$dom.find('.controls .btn.selected'));
+        if (current < $choices.length - 1) {
+            current++;
+        }
+        this.$dom.find('.controls .btn.selected').removeClass('selected');
+        this.$dom.find('.controls .btn').eq(current).addClass('selected');
+    }
+
+    prevChoice() {
+        const $choices = this.$dom.find('.controls .btn');
+        let current = $choices.index(this.$dom.find('.controls .btn.selected'));
+        if (current > 0) {
+            current--;
+        }
+        this.$dom.find('.controls .btn.selected').removeClass('selected');
+        this.$dom.find('.controls .btn').eq(current).addClass('selected');
     }
 
 
