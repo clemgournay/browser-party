@@ -20,7 +20,6 @@ class Case {
                 break;
             case 'star':
                 if (this.game.mainPlayer.canBuyStars(1)) {
-                    console.log(this.game.messageSystem)
                     this.game.messageSystem.confirm('Toad', 'Do you want to buy a star for ' + this.game.board.starPrice + ' coins ?', () => {
                         this.game.mainPlayer.buyStars(1);
                         callback();

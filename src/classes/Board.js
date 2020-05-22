@@ -80,6 +80,7 @@ class Board {
 
             fbxLoader.load('./assets/models/Arrow.fbx', (obj) => {
                 this.models.arrow = obj;
+                this.gameObjects.arrows = [];
             });
 
             this.textures.dice = [];
@@ -200,15 +201,20 @@ class Board {
 
     }
 
-    newArrow(theCase) {
-        const arrow = this.models.arrow;
+    newArrow(theCase, type) {
+        if (!this.gameObjects.arrows) this.gameObjects.arrows = [];
+        const arrow = this.models.arrow.clone();
         arrow.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
         });
         const casePos = theCase.mesh.position;
-        arrow.position.set(casePos.x, casePos.y+0.1, casePos.z);
-        arrow.scale.set(0.01, 0.01, 0.01);
+        arrow.position.set(casePos.x, casePos.y+0.2, casePos.z);
+        arrow.scale.set(0.015, 0.015, 0.015);
+        if (type === 1) {
+            arrow.rotation.y = Math.PI;
+        }
+        this.gameObjects.arrows.push(arrow);
         this.scene.add(arrow);
     }
 
@@ -287,7 +293,7 @@ class Board {
         for (let i = 0; i < nextPositions.length; i++) {
             const nextPosition = nextPositions[i];
             const nextCase = this.cases[nextPosition.block][nextPosition.way][nextPosition.case];
-            this.newArrow(nextCase);
+            this.newArrow(nextCase, i);
         }
         
         const currentPlayer = this.game.currentPlayer;
@@ -324,7 +330,11 @@ class Board {
     }
 
     wayChosen (nextPositions, resultIndex, richedNextCase) {
-        
+        this.gameObjects.arrows.forEach((arrow) => {
+            console.log(arrow);
+            this.scene.remove(arrow);
+        });
+        this.gameObjects.arrows = [];
         const nextPos = nextPositions[resultIndex];
         const currentPlayer = this.game.currentPlayer;
         const currentCharacter = this.characters[currentPlayer.id];
