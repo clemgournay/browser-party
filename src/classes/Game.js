@@ -61,6 +61,7 @@ class Game {
 
     setPlayers(players) {
         this.playersOrder = [this.mainPlayer.id];
+        console.log('[PLAYERS SERVER]', players);
         for (var id in players) {
             const player = players[id];
             if (id !== this.mainPlayer.id) {

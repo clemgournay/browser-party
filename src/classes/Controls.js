@@ -4,6 +4,13 @@ class Controls {
         this.game = game;
         this.isMobile = this.checkMobile();
         this.actions = {};
+        this.joystick = {
+            directions: {hor: 'none', ver: 'none'},
+            values: {
+                left: 0, right: 0,
+                up: 0, down: 0
+            }
+        }
         this.ctx = {};
         this.lockState = false;
     }
@@ -16,11 +23,24 @@ class Controls {
 
         $(document).on('keydown', (e) => {
             if (!this.lockState) {
-                this.onKeyPress(e);
-                this.lockState = true;
-                setTimeout(() => {
-                    this.lockState = false;
-                }, 200);
+                switch(e.keyCode) {
+                    case 13:
+                        this.onKeyDown(e);
+                        this.lockState = true;
+                        setTimeout(() => {
+                            this.lockState = false;
+                        }, 200);
+                        break;
+                    default:
+                        this.onKeyDown(e);
+                        break;
+                }
+            }
+        });
+
+        $(document).on('keyup', (e) => {
+            if (!this.lockState) {
+                this.onKeyUp(e);
             }
         });
 
@@ -32,24 +52,69 @@ class Controls {
         return check;
     }
 
-    onKeyPress(e) {
+    onKeyDown(e) {
         switch (e.keyCode) {
             case 13: // enter
                 this.callAction('validate');
                 break;
             case 40: //down
+                this.moveJoystick({
+                    directions: {hor: 'none', ver: 'down'},
+                    values: {left: 0, right: 0, up: 0, down: 100}
+                });
                 this.callAction('down');
                 break;
             case 38: //up
+                this.moveJoystick({
+                    directions: {hor: 'none', ver: 'up'},
+                    values: {left: 0, right: 0, up: 100, down: 0}
+                });
                 this.callAction('up');
                 break;
             case 37: //left
+                this.moveJoystick({
+                    directions: {hor: 'left', ver: 'none'},
+                    values: {left: 100, right: 0, up: 0, down: 0}
+                });
                 this.callAction('left');
                 break;
             case 39: //right
+                this.moveJoystick({
+                    directions: {hor: 'right', ver: 'none'},
+                    values: {left: 0, right: 100, up: 100, down: 0}
+                });
                 this.callAction('right');
                 break;
 
+        }
+    }
+
+    onKeyUp(e) {
+        switch (e.keyCode) {
+            case 40:
+            case 38:
+                this.moveJoystick({
+                    directions: {hor: this.joystick.directions.hor, ver: 'none'},
+                    values: {
+                        left: this.joystick.values.left,
+                        right: this.joystick.values.right,
+                        up: 0,
+                        down: 0
+                    }
+                });
+                break;                
+            case 37:
+            case 39:
+                this.moveJoystick({
+                    directions: {hor: 'none', ver: this.joystick.directions.hor},
+                    values: {
+                        left: 0,
+                        right: 0,
+                        up: this.joystick.values.up,
+                        down: this.joystick.values.down
+                    }
+                });
+                break;
         }
     }
 
@@ -65,6 +130,15 @@ class Controls {
 
     callAction(action) {
         if (this.actions[action]) this.actions[action].call(this.ctx[action]);
+    }
+
+    moveJoystick(data) {
+        this.joystick.directions = data.directions;
+        this.joystick.values = data.values;
+        if (this.joystick.directions.hor === 'left') this.callAction('left');
+        if (this.joystick.directions.hor === 'right') this.callAction('right');
+        if (this.joystick.directions.ver === 'up') this.callAction('up');
+        if (this.joystick.directions.ver === 'down') this.callAction('down');
     }
 
 }

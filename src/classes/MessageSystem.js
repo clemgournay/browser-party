@@ -26,6 +26,9 @@ class MessageSystem {
         this.game.board.controls.setAction('validate', this, () => {
             this.$dom.find('.btn.selected').click();
         });
+        this.game.board.controls.setAction('cancel', this, () => {
+            this.$dom.find('.btn.cancel').click();
+        });
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
@@ -46,6 +49,9 @@ class MessageSystem {
         this.show();
         this.game.board.controls.setAction('validate', this, () => {
             this.$dom.find('.btn.selected').click();
+        });
+        this.game.board.controls.setAction('cancel', this, () => {
+            this.$dom.find('.btn.ok').click();
         });
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();

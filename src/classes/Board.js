@@ -5,6 +5,8 @@ import { Controls } from './Controls.js';
 import { Animator } from './Animator.js';
 import { Case } from './Case.js';
 
+import { cloneFbx } from '../utils/3d.js';
+
 class Board {
     
     constructor(game) {
@@ -27,7 +29,6 @@ class Board {
         this.blueCaseValue = 0;
         this.redCaseValue = 0;
         this.enteredInBoard = false;
-        this.characterModel = null;
     }
 
     load(callback) {
@@ -174,11 +175,14 @@ class Board {
     newCharacter(player) {
 
         const character = this.models.character;
+        //console.log(character);
+        console.log(this.models.character);
         character.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
         });
-
+ 
+        console.log(player.id);
         this.animator.create(player.id, character);
         this.animator.addAnimation(player.id, 'idle', 2, 1, true);
         this.animator.addAnimation(player.id, 'run', 0, 0, true);
@@ -210,12 +214,19 @@ class Board {
         });
         const casePos = theCase.mesh.position;
         arrow.position.set(casePos.x, casePos.y+0.2, casePos.z);
+
         arrow.scale.set(0.015, 0.015, 0.015);
         if (type === 1) {
             arrow.rotation.y = Math.PI;
         }
         this.gameObjects.arrows.push(arrow);
         this.scene.add(arrow);
+
+        let scale = arrow.position.clone();
+        const scaleAnim = new TWEEN.Tween(scale).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
+        moveAnim.onUpdate(() => {
+            currentCharacter.position.set(position.x, position.y, position.z);
+        });
     }
 
     moveCharacter(id, position) {
@@ -299,8 +310,8 @@ class Board {
         const currentPlayer = this.game.currentPlayer;
         this.animator.playFade(currentPlayer.id, 'idle', 0.2);
         this.controls.setAction('left', this, () => {
-            this.controls.removeAction('left');
-            this.controls.removeAction('right');
+            this.controls.removeJoystickAction('left');
+            this.controls.removeJoystickAction('right');
             callback(1);
         });
         this.controls.setAction('right', this, () => {

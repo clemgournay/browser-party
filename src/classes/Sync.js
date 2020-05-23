@@ -37,8 +37,10 @@ class Sync {
         this.socket.on('control sent', (controlData) => {
             if (controlData.id === this.controlID) {
                 console.log('Control received', controlData)
-                if (controlData.control === 'action') {
-                    this.game.board.controls.callAction();
+                if (controlData.control === 'joystick') {
+                    this.game.board.controls.moveJoystick(controlData);
+                } else {
+                    this.game.board.controls.callAction(controlData.control);
                 }
             }
         })

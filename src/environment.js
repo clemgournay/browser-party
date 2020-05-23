@@ -2,7 +2,7 @@ export const ENV = 'local';
 
 const apiURLs = {
     'local': 'http://localhost:3000',
-    'test': 'https://a2b26906.eu.ngrok.io',
+    'test': 'https://8c7e95c7ca89.eu.ngrok.io',
     'prod': ''
 }
 
