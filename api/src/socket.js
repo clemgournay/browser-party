@@ -12,6 +12,15 @@ module.exports = function (server) {
     this.messages = [];
     this.playerOrder = [];
 
+    this.findInArray = (arr, key, value) => {
+        let i = 0, found = false;
+        while (!found && i < arr.length) {
+            if (arr[i][key] === value) found = true;
+            else i++;
+        }
+        return (found) ? i : -1;
+    }
+
     this.findPlayerByControlID = (controlID) => {
         let i = 0, found = false;
         let id = null;
@@ -60,35 +69,15 @@ module.exports = function (server) {
             this.playerOrder.push(id);
 
             console.log(name + '(' + socket.id + ') joined the room ' + roomID);
-            console.log('PLAYER LIST', this.players);
-            socket.emit('players', this.players);
+            socket.emit('players', {players: this.players, order: this.playerOrder});
             socket.emit('controlID', controlID);
 
-            socket.broadcast.to(roomID).emit('player logged in', {id: id, player: this.players[id]});
+            socket.broadcast.to(roomID).emit('player logged in', {id: id, player: this.players[id], order: this.playerOrder});
 
-            socket.emit('player order', this.playerOrder);
             socket.emit('chat messages', this.messages);
 
-            
-            socket.on('position update', (position) => {
-                if (this.players[id]) {
-                    this.players[id].position = position;
-                    socket.broadcast.to(roomID).emit('player moved', {id: id, position: position});
-                }
-            });
-
-            socket.on('name update', (name) => {
-                if (this.players[id]) {
-                    this.players[id].name = name;
-                    socket.broadcast.to(roomID).emit('name updated', {id: id, name: name});
-                }
-            });
-
-            socket.on('character update', (characterID) => {
-                if (this.players[id]) {
-                    this.players[id].characterID = characterID;
-                    socket.broadcast.to(roomID).emit('character updated', {id: id, characterID: characterID});
-                }
+            socket.on('hit dice', (score) => {
+                socket.broadcast.to(roomID).emit('dice hit', {id: id, score: score});
             });
 
             socket.on('chat send', (msg) => {
@@ -120,8 +109,10 @@ module.exports = function (server) {
                 //const mainVoiceRoom = voiceRoom.getMainRoom();
                 //mainVoiceRoom.removePeer(id);
                 socket.leave(roomID);
+                const index = this.findInArray(this.playerOrder, 'id', id);
+                this.playerOrder.splice(index, 1);
                 console.log(name +  '(' + socket.id + ') disconnected from room ' + roomID);
-                socket.broadcast.to(roomID).emit('player left', id);
+                socket.broadcast.to(roomID).emit('player left', {id: id, order: this.playerOrder});
                 console.log('USER LIST', this.players);
             });    
         }
