@@ -24,13 +24,12 @@ class Game {
         this.chat = new Chat(this);
         
         this.players = {};
-        this.playersOrder = [];
+        this.playerOrder = [];
         this.playerTurn = 0;
         this.currentPlayer = null;
     }
 
     init() {
-
         this.board.load(() => {
             this.UI.init();
             this.sync.connect(this.mainPlayer, (players) => {
@@ -61,15 +60,16 @@ class Game {
 
     setPlayers(players) {
         this.playersOrder = [this.mainPlayer.id];
-        console.log('[PLAYERS SERVER]', players);
-        for (var id in players) {
+        //console.log('[PLAYERS SERVER]', players);
+        for (let id in players) {
             const player = players[id];
             if (id !== this.mainPlayer.id) {
-                this.playersOrder.push(id);
                 this.newPlayer(id, player);
             } else {
+                console.log(this.mainPlayer, id)
                 this.players[id] = this.mainPlayer;
             }
+            this.playersOrder.push(id);
         }
         const currPlayerID = this.playersOrder[this.playerTurn];
         this.players[currPlayerID].myTurn = true;
@@ -87,7 +87,7 @@ class Game {
     }
 
     movePlayer(id, position) {
-        this.players[id].position = position;
+        //this.players[id].position = position;
         this.board.moveCharacter(id, position);
     }
 
@@ -96,8 +96,8 @@ class Game {
         delete this.players[id];
     }
 
-    updateMainPlayerPosition() {
-        this.sync.updateMainPlayerPosition();
+    moveMainPlayerToCase(caseIndex) {
+        this.sync.moveMainPlayerToCase(caseIndex);
     }
 
 

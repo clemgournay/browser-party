@@ -25,7 +25,6 @@ class MainPlayer extends Player {
             way: nextPos.way,
             case: nextPos.case
         };
-        this.game.updateMainPlayerPosition();
     }
 
     buyStars(value) {
@@ -35,6 +34,7 @@ class MainPlayer extends Player {
         this.game.UI.updatePlayerScore(this);
     }
 
+ 
 }
 
 export { MainPlayer };

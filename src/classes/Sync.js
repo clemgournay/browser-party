@@ -43,7 +43,12 @@ class Sync {
                     this.game.board.controls.callAction(controlData.control);
                 }
             }
-        })
+        });
+
+        this.socket.on('player order', (playerOrder) => {
+            this.game.playerOrder = playerOrder;
+            this.game.start();
+        });
 
         this.socket.on('player logged in', (e) => {
             console.log('player logged in: ' + e.id)
@@ -51,7 +56,7 @@ class Sync {
         });
 
         this.socket.on('player moved', (e) => {
-            this.game.movePlayer(e.id, e.position);
+            this.game.movePlayer(e.id, e.caseIndex);
         });
 
         this.socket.on('player left', (id) => {
@@ -61,8 +66,8 @@ class Sync {
         
     }
 
-    updateMainPlayerPosition(position) {
-        if (this.socket) this.socket.emit('position update', this.game.mainPlayer.position);
+    moveMainPlayerToCase(caseIndex) {
+        if (this.socket) this.socket.emit('player move', caseIndex);
     }
 
 }

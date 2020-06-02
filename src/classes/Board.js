@@ -18,7 +18,7 @@ class Board {
         this.animator = new Animator(this.game);
         this.gameObjects = {};
         this.textures = {};
-        this.models = {};
+        this.models = {characters: {}};
         this.mainCharacter = new THREE.Group();
         this.loader = new THREE.LoadingManager();
         this.characters = {};
@@ -45,7 +45,7 @@ class Board {
                 block.forEach((way) => {
                     const theWay = [];
                     way.forEach((caseData) => {
-                        theWay.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}, caseData.direction));
+                        theWay.push(new Case(this.game, caseData.type, {x: caseData.x, y: caseData.y, z: caseData.z}));
                     });
                     theBlock.push(theWay);
                 });
@@ -76,7 +76,10 @@ class Board {
 
 
             fbxLoader.load('./assets/models/Character.fbx', (obj) => {
-                this.models.character = obj;
+                this.models.characters.basic = obj;
+            });
+            fbxLoader.load('./assets/models/Character.fbx', (obj) => {
+                this.models.characters.basic2 = obj;
             });
 
             fbxLoader.load('./assets/models/Arrow.fbx', (obj) => {
@@ -174,15 +177,13 @@ class Board {
 
     newCharacter(player) {
 
-        const character = this.models.character;
-        //console.log(character);
-        console.log(this.models.character);
+        const isMainPlayer = (player.constructor.name === 'MainPlayer');
+        const character = isMainPlayer ? this.models.characters.basic : this.models.characters.basic2;
         character.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
+            //if (!isMainPlayer) child.material.color = 'red';
         });
- 
-        console.log(player.id);
         this.animator.create(player.id, character);
         this.animator.addAnimation(player.id, 'idle', 2, 1, true);
         this.animator.addAnimation(player.id, 'run', 0, 0, true);
@@ -190,14 +191,15 @@ class Board {
 
         character.scale.set(0.0045, 0.0045, 0.0045);
         character.position.set(10.4, 0.7, -10);
+        if (!isMainPlayer) character.position.set(10.6, 0.7, -10);
         const nextPos = this.getNextCases(player)[0];
-        const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].mesh.position;
+        const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         character.lookAt(lookPos);
         character.name = player.id;
 
         this.characters[player.id] = character;
-        if (player.constructor.name === 'MainPlayer') {
+        if (isMainPlayer) {
             this.mainCharacter = character;
         }
 
@@ -222,10 +224,10 @@ class Board {
         this.gameObjects.arrows.push(arrow);
         this.scene.add(arrow);
 
-        let scale = arrow.position.clone();
-        const scaleAnim = new TWEEN.Tween(scale).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
-        moveAnim.onUpdate(() => {
-            currentCharacter.position.set(position.x, position.y, position.z);
+        let scale = {x: 0, y: 0, z: 0}
+        const scaleAnim = new TWEEN.Tween(scale).to({x: 1, y: 1, z: 1}, 600);
+        scaleAnim.onUpdate(() => {
+            currentCharacter.scale.set(scale.x, scale.y, scale.z);
         });
     }
 
@@ -258,22 +260,35 @@ class Board {
     }
 
 
-    moveToCase(index) {
+    moveToCase(id, index) {
         this.moveToNextCase(() => {
+            
+            const currentPlayer = this.game.players[id];
+            const pos = currentPlayer.position;
+            const theCase = this.cases[pos.block][pos.way][pos.case];
+            
+            const currentCharacter = this.characters[id];
+
             if (index === 0) {
                 console.log('goal')
-                const currentPlayer = this.game.currentPlayer;
-                const currentCharacter = this.characters[currentPlayer.id];
+                
                 this.animator.playFade(currentPlayer.id, 'idle', 0.2);
-                const pos = currentPlayer.position;
-                this.cases[pos.block][pos.way][pos.case].action(() => {
+                theCase.action(() => {
                     const charPos = currentCharacter.position.clone();
                     this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
                     currentPlayer.moveInProgress = false;
                     this.showDice();
                 });
             } else {
-                this.moveToCase(index-1)
+
+                if (theCase.actionImmediate && theCase.action) {
+                    this.animator.playFade(currentPlayer.id, 'idle', 0.2);
+                    theCase.action(() => {
+                        this.moveToCase(id, index-1);
+                    });
+                } else {
+                    this.moveToCase(id, index-1);
+                }
             }
         });
     }
@@ -342,7 +357,6 @@ class Board {
 
     wayChosen (nextPositions, resultIndex, richedNextCase) {
         this.gameObjects.arrows.forEach((arrow) => {
-            console.log(arrow);
             this.scene.remove(arrow);
         });
         this.gameObjects.arrows = [];
@@ -447,14 +461,17 @@ class Board {
         const relativeCameraOffset = new THREE.Vector3(-150, 330, -250);
 
         const currentPlayer = this.game.currentPlayer;
-        const currentCharacter = this.characters[currentPlayer.id];
-        const cameraOffset = relativeCameraOffset.applyMatrix4(currentCharacter.matrixWorld);
+        if (this.characters[currentPlayer.id]) {
+            const currentCharacter = this.characters[currentPlayer.id];
+            //const currentCharacter = this.characters[this.game.mainPlayer.id];
 
-        this.camera.position.x = cameraOffset.x;
-        this.camera.position.y = cameraOffset.y;
-        this.camera.position.z = cameraOffset.z;
-        this.camera.lookAt(currentCharacter.position);
-        
+            const cameraOffset = relativeCameraOffset.applyMatrix4(currentCharacter.matrixWorld);
+
+            this.camera.position.x = cameraOffset.x;
+            this.camera.position.y = cameraOffset.y;
+            this.camera.position.z = cameraOffset.z;
+            this.camera.lookAt(currentCharacter.position);
+        }
 
         this.animator.update(delta);
         this.renderer.render(this.scene, this.camera);
@@ -502,7 +519,8 @@ class Board {
                 this.hideDice();
             }, 500);
             setTimeout(() => {
-                this.moveToCase(score-1);
+                this.moveToCase(this.game.mainPlayer.id, score-1);
+                this.game.moveMainPlayerToCase(score-1);
             }, 1000);
         });
         anim.start();

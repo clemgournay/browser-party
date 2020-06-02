@@ -10,6 +10,7 @@ module.exports = function (server) {
 
     this.players = {};
     this.messages = [];
+    this.playerOrder = [];
 
     this.findPlayerByControlID = (controlID) => {
         let i = 0, found = false;
@@ -56,6 +57,8 @@ module.exports = function (server) {
                 controlID: controlID
             };
 
+            this.playerOrder.push(id);
+
             console.log(name + '(' + socket.id + ') joined the room ' + roomID);
             console.log('PLAYER LIST', this.players);
             socket.emit('players', this.players);
@@ -63,6 +66,7 @@ module.exports = function (server) {
 
             socket.broadcast.to(roomID).emit('player logged in', {id: id, player: this.players[id]});
 
+            socket.emit('player order', this.playerOrder);
             socket.emit('chat messages', this.messages);
 
             

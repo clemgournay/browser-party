@@ -15,7 +15,6 @@ class Animator {
     }
 
     addAnimation(id, action, index, weight, loop) {
-        console.log(this.mixers[id])
         this.animations[id][action] = this.mixers[id].clipAction(this.mixers[id]._root.animations[index]);
         this.animations[id][action].play();
         this.setWeight(id, action, weight);
