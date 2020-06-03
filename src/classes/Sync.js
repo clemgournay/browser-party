@@ -24,8 +24,8 @@ class Sync {
             query: 'id=' + this.playerID + '&name=' + this.playername + '&position=' + this.position.block + ',' + this.position.way + ',' + this.position.case + '&rotation=' + this.rotation + '&characterID=' + this.characterID 
         });
 
-        this.socket.on('players', (players) => {
-            callback(players);
+        this.socket.on('players', (playerData) => {
+            callback(playerData);
         });
 
         this.socket.on('controlID', (controlID) => {
@@ -45,29 +45,26 @@ class Sync {
             }
         });
 
-        this.socket.on('player order', (playerOrder) => {
-            this.game.playerOrder = playerOrder;
-            this.game.start();
-        });
-
         this.socket.on('player logged in', (e) => {
             console.log('player logged in: ' + e.id)
             this.game.newPlayer(e.id, e.player);
+            this.game.playerOrder = e.order;
         });
 
-        this.socket.on('player moved', (e) => {
-            this.game.movePlayer(e.id, e.caseIndex);
+        this.socket.on('dice hit', (e) => {
+            this.game.board.playerDiceHit(e.id, e.score);
         });
 
-        this.socket.on('player left', (id) => {
-            console.log('player left: ' + id);
-            this.game.removePlayer(id);
+        this.socket.on('player left', (e) => {
+            console.log('player left: ' + e.id);
+            this.game.removePlayer(e.id);
+            this.game.playerOrder = e.order;
         });
         
     }
 
-    moveMainPlayerToCase(caseIndex) {
-        if (this.socket) this.socket.emit('player move', caseIndex);
+    mainPlayerHitDice(score) {
+        if (this.socket) this.socket.emit('hit dice', score);
     }
 
 }

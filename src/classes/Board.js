@@ -74,7 +74,6 @@ class Board {
                 this.gameObjects.board = obj;
             });
 
-
             fbxLoader.load('./assets/models/Character.fbx', (obj) => {
                 this.models.characters.basic = obj;
             });
@@ -190,6 +189,8 @@ class Board {
         this.animator.addAnimation(player.id, 'jump', 3, 0, false);
 
         character.scale.set(0.0045, 0.0045, 0.0045);
+        const pos = player.position;
+        //const case = this.cases[pos.block][pos.way][pos.case].position;
         character.position.set(10.4, 0.7, -10);
         if (!isMainPlayer) character.position.set(10.6, 0.7, -10);
         const nextPos = this.getNextCases(player)[0];
@@ -260,19 +261,19 @@ class Board {
     }
 
 
-    moveToCase(id, index) {
-        this.moveToNextCase(() => {
+    moveToCase(playerID, index) {
+        this.moveToNextCase(playerID, () => {
             
-            const currentPlayer = this.game.players[id];
+            const currentPlayer = this.game.players[playerID];
             const pos = currentPlayer.position;
             const theCase = this.cases[pos.block][pos.way][pos.case];
             
-            const currentCharacter = this.characters[id];
+            const currentCharacter = this.characters[playerID];
 
             if (index === 0) {
                 console.log('goal')
                 
-                this.animator.playFade(currentPlayer.id, 'idle', 0.2);
+                this.animator.playFade(playerID, 'idle', 0.2);
                 theCase.action(() => {
                     const charPos = currentCharacter.position.clone();
                     this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
@@ -282,12 +283,12 @@ class Board {
             } else {
 
                 if (theCase.actionImmediate && theCase.action) {
-                    this.animator.playFade(currentPlayer.id, 'idle', 0.2);
+                    this.animator.playFade(playerID, 'idle', 0.2);
                     theCase.action(() => {
-                        this.moveToCase(id, index-1);
+                        this.moveToCase(playerID, index-1);
                     });
                 } else {
-                    this.moveToCase(id, index-1);
+                    this.moveToCase(playerID, index-1);
                 }
             }
         });
@@ -336,38 +337,42 @@ class Board {
         });
     }
 
-    moveToNextCase(richedNextCase) {
+    moveToNextCase(playerID, richedNextCase) {
         
-        const currentPlayer = this.game.currentPlayer;
+        const currentPlayer = this.game.players[playerID];
         
         const nextPositions = this.getNextCases(currentPlayer);
         if (nextPositions.length > 1) {
-            this.choseWay(nextPositions, (resultIndex) => {
-                this.wayChosen(nextPositions, resultIndex, richedNextCase);
-            });
+            if (playerID === this.game.mainPlayer.id) {
+                this.choseWay(nextPositions, (resultIndex) => {
+                    this.wayChosen(playerID, nextPositions, resultIndex, richedNextCase);
+                });
+            } else {
+                console.log('SYNC');   
+            }
         } else {
             if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
                 this.animator.playFade(currentPlayer.id, 'run', 0.2);
             }
-            this.wayChosen(nextPositions, 0, richedNextCase);
+            this.wayChosen(playerID, nextPositions, 0, richedNextCase);
         }
         
             
     }
 
-    wayChosen (nextPositions, resultIndex, richedNextCase) {
+    wayChosen(playerID, nextPositions, resultIndex, richedNextCase) {
         this.gameObjects.arrows.forEach((arrow) => {
             this.scene.remove(arrow);
         });
         this.gameObjects.arrows = [];
         const nextPos = nextPositions[resultIndex];
-        const currentPlayer = this.game.currentPlayer;
-        const currentCharacter = this.characters[currentPlayer.id];
+        const currentPlayer = this.game.players[playerID];
+        const currentCharacter = this.characters[playerID];
         const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
         const nextCasePos = nextCase.mesh.position;
 
-        if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
-            this.animator.playFade(currentPlayer.id, 'run', 0.2);
+        if (this.animator.currentAnimations[playerID] !== 'run') {
+            this.animator.playFade(playerID, 'run', 0.2);
         }
 
         let position = currentCharacter.position.clone();
@@ -384,8 +389,8 @@ class Board {
 
         if (this.enteredInBoard) {
   
-            const prevPos = this.game.mainPlayer.prevPosition;
-            const curPos = this.game.mainPlayer.position;
+            const prevPos = currentPlayer.prevPosition;
+            const curPos = currentPlayer.position;
             const prevCase = this.cases[prevPos.block][prevPos.way][prevPos.case];
             const curCase = this.cases[curPos.block][curPos.way][curPos.case];
             const prevCasePos = prevCase.mesh.position;
@@ -439,13 +444,19 @@ class Board {
     }
 
     hitDice() {
-        const id = this.game.currentPlayer.id;
+        const id = this.game.mainPlayer.id;
         this.animator.playFade(id, 'jump', 0.2);
         setTimeout(() => {
             this.game.diceRolling = false;
             const score = Math.floor(Math.random() * 6) + 1;
-            this.showDiceResult(score);
+            this.showDiceResult(id, score);
+            this.game.mainPlayerHitDice(score);
         }, 500);
+    }
+
+    playerDiceHit(playerID, score) {
+        this.game.diceRolling = false;
+        this.showDiceResult(playerID, score);
     }
     
     update(time) {
@@ -480,7 +491,7 @@ class Board {
 
     }
 
-    showDiceResult(score) {
+    showDiceResult(playerID, score) {
 
         const startRotation = new THREE.Euler().copy(this.gameObjects.dice.rotation);
 
@@ -519,8 +530,7 @@ class Board {
                 this.hideDice();
             }, 500);
             setTimeout(() => {
-                this.moveToCase(this.game.mainPlayer.id, score-1);
-                this.game.moveMainPlayerToCase(score-1);
+                this.moveToCase(playerID, score-1);
             }, 1000);
         });
         anim.start();

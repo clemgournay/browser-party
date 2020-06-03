@@ -18,15 +18,6 @@ class MainPlayer extends Player {
         }
     }
 
-    updatePosition(nextPos) {
-        this.prevPosition = JSON.parse(JSON.stringify(this.position));
-        this.position = {
-            block: nextPos.block,
-            way: nextPos.way,
-            case: nextPos.case
-        };
-    }
-
     buyStars(value) {
         const price = value * this.game.board.starPrice;
         this.coins -= price;

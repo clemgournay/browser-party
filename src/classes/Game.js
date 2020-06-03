@@ -58,20 +58,20 @@ class Game {
         return Object.keys(this.characters)[index]; 
     }
 
-    setPlayers(players) {
-        this.playersOrder = [this.mainPlayer.id];
+    setPlayers(playerData) {
+        this.playerOrder = playerData.order;
         //console.log('[PLAYERS SERVER]', players);
-        for (let id in players) {
-            const player = players[id];
+        for (let id in playerData.players) {
+            const player = playerData.players[id];
             if (id !== this.mainPlayer.id) {
                 this.newPlayer(id, player);
             } else {
                 console.log(this.mainPlayer, id)
                 this.players[id] = this.mainPlayer;
             }
-            this.playersOrder.push(id);
         }
-        const currPlayerID = this.playersOrder[this.playerTurn];
+        console.log(this.playerOrder)
+        const currPlayerID = this.playerOrder[this.playerTurn];
         this.players[currPlayerID].myTurn = true;
         this.currentPlayer = this.players[currPlayerID];
         console.log('[PLAYERS]', this.players);
@@ -87,7 +87,6 @@ class Game {
     }
 
     movePlayer(id, position) {
-        //this.players[id].position = position;
         this.board.moveCharacter(id, position);
     }
 
@@ -96,8 +95,8 @@ class Game {
         delete this.players[id];
     }
 
-    moveMainPlayerToCase(caseIndex) {
-        this.sync.moveMainPlayerToCase(caseIndex);
+    mainPlayerHitDice(score) {
+        this.sync.mainPlayerHitDice(score);
     }
 
 

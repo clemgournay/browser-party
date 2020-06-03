@@ -24,6 +24,15 @@ class Player {
         }
     }
 
+    updatePosition(nextPos) {
+        this.prevPosition = JSON.parse(JSON.stringify(this.position));
+        this.position = {
+            block: nextPos.block,
+            way: nextPos.way,
+            case: nextPos.case
+        };
+    }
+
     canBuyStars(value) {
         const price = value * this.game.board.starPrice;
         return (this.coins >= price);
