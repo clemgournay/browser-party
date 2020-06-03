@@ -76,6 +76,10 @@ module.exports = function (server) {
 
             socket.emit('chat messages', this.messages);
 
+            socket.on('way chose', (way) => {
+                socket.broadcast.to(roomID).emit('way chosen', {id: id, way: way});
+            });
+
             socket.on('hit dice', (score) => {
                 socket.broadcast.to(roomID).emit('dice hit', {id: id, score: score});
             });
