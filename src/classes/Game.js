@@ -57,19 +57,15 @@ class Game {
             
             if (id === this.mainPlayer.id) {
                 this.players[id] = this.mainPlayer;
-                this.board.newCharacter(this.players[id]);
+                this.board.newCharacter(this.mainPlayer);
             } else {
                 this.newPlayer(id, player);
             }
         }
 
-        console.log(this.players);
-        console.log(this.playerOrder)
         for(let i = 0; i < this.playerOrder.length; i++) {
-            console.log(this.playerOrder[i])
             this.players[this.playerOrder[i]].order = i;
         }
-        console.log(this.playerOrder)
         const currPlayerID = this.playerOrder[this.playerTurn];
         this.players[currPlayerID].myTurn = true;
         this.currentPlayer = this.players[currPlayerID];

@@ -61,7 +61,7 @@ module.exports = function (server) {
             this.players[id] = {
                 socketID: socket.id,
                 name: name,
-                avatar: Math.floor(Math.random() + m-
+                avatar: Math.floor(Math.random()),
                 position: {block: parseFloat(position[0]), way: parseFloat(position[1]), case: parseFloat(position[2])},
                 controlID: controlID
             };

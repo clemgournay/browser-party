@@ -119,7 +119,6 @@ class Board {
         this.buildLights();
         this.buildBoardOBJ();
         this.buildCases();
-        //this.newCharacter(this.game.mainPlayer);
         this.buildDice();
 
         this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -192,8 +191,9 @@ class Board {
         character.scale.set(0.0045, 0.0045, 0.0045);
         const pos = player.position;
         //const case = this.cases[pos.block][pos.way][pos.case].position;
-        const offset = player.order * 1;
-        character.position.set(10.4 + offset, 0.7, -10);
+        const offset = player.order * 0.6;
+        console.log(player);
+        character.position.set(10.4, 0.7, -10);
         if (!isMainPlayer) character.position.set(10.6, 0.7, -10);
         const nextPos = this.getNextCases(player)[0];
         const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].position;
