@@ -10,8 +10,7 @@ module.exports = function (server) {
 
     this.players = {};
     this.messages = [];
-    this.playerOrder = [];
-    this.avatarsNb = 15;
+    this.playerCount = 0;
 
     this.findInArray = (arr, key, value) => {
         let i = 0, found = false;
@@ -55,21 +54,20 @@ module.exports = function (server) {
             const id = data._query.id;
             const name = data._query.name;
             const position = data._query.position.split(',');
-            console.log(position)
             const controlID = uuid.v1();
 
             this.players[id] = {
                 socketID: socket.id,
                 name: name,
-                avatar: Math.floor(Math.random()),
                 position: {block: parseFloat(position[0]), way: parseFloat(position[1]), case: parseFloat(position[2])},
-                controlID: controlID
+                controlID: controlID,
+                order: this.playerCount
             };
 
-            this.playerOrder.push(id);
+            this.playerCount++;
 
             console.log(name + '(' + socket.id + ') joined the room ' + roomID);
-            socket.emit('players', {players: this.players, order: this.playerOrder});
+            socket.emit('players', this.players);
             socket.emit('controlID', controlID);
 
             socket.broadcast.to(roomID).emit('player logged in', {id: id, player: this.players[id], order: this.playerOrder});
@@ -113,8 +111,7 @@ module.exports = function (server) {
                 //const mainVoiceRoom = voiceRoom.getMainRoom();
                 //mainVoiceRoom.removePeer(id);
                 socket.leave(roomID);
-                const index = this.findInArray(this.playerOrder, 'id', id);
-                this.playerOrder.splice(index, 1);
+                this.playerCount--;
                 console.log(name +  '(' + socket.id + ') disconnected from room ' + roomID);
                 socket.broadcast.to(roomID).emit('player left', {id: id, order: this.playerOrder});
                 console.log('USER LIST', this.players);
