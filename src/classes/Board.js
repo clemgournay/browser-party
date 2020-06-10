@@ -29,6 +29,7 @@ class Board {
         this.blueCaseValue = 0;
         this.redCaseValue = 0;
         this.enteredInBoard = false;
+        this.nextAction = null;
     }
 
     load(callback) {
@@ -118,7 +119,7 @@ class Board {
         this.buildLights();
         this.buildBoardOBJ();
         this.buildCases();
-        this.newCharacter(this.game.mainPlayer);
+        //this.newCharacter(this.game.mainPlayer);
         this.buildDice();
 
         this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -191,7 +192,8 @@ class Board {
         character.scale.set(0.0045, 0.0045, 0.0045);
         const pos = player.position;
         //const case = this.cases[pos.block][pos.way][pos.case].position;
-        character.position.set(10.4, 0.7, -10);
+        const offset = player.order * 1;
+        character.position.set(10.4 + offset, 0.7, -10);
         if (!isMainPlayer) character.position.set(10.6, 0.7, -10);
         const nextPos = this.getNextCases(player)[0];
         const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].position;
@@ -319,7 +321,7 @@ class Board {
     choseWay(nextPositions, callback) {
         for (let i = 0; i < nextPositions.length; i++) {
             const nextPosition = nextPositions[i];
-            const nextCase = this.cases[nextPosition.block][nextPosition.way][nextPosition.case];
+            const nextCase = this.cases[nextPosition.block][nextPosition.way][nextPosition.case];0
             this.newArrow(nextCase, i);
         }
         
@@ -346,27 +348,44 @@ class Board {
             if (playerID === this.game.mainPlayer.id) {
                 this.choseWay(nextPositions, (resultIndex) => {
                     this.wayChosen(playerID, nextPositions, resultIndex, richedNextCase);
+                    this.game.mainPlayerWayChose(resultIndex);
                 });
             } else {
-                console.log('SYNC');   
+                console.log('SYNC');
+                this.nextAction = {nextPositions: nextPositions, richedNextCase: richedNextCase};
             }
         } else {
-            if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
-                this.animator.playFade(currentPlayer.id, 'run', 0.2);
-            }
+            
             this.wayChosen(playerID, nextPositions, 0, richedNextCase);
         }
-        
             
     }
 
+    playerWayChosen(playerID, way) {
+        this.wayChosen(playerID, this.nextAction.nextPositions, way, this.nextAction.richedNextCase);
+    }
+
+    callNextAction() {
+        let paramStr = '';
+        for (let i = 0; i < this.nextAction.params.length; i++) {
+            paramStr += 'this.nextAction.params[' + i + ']';
+            if (i < this.nextAction.params.length - 1) paramStr += ', ';
+        }
+        eval('this.nextAction.func(' + paramStr + ')');
+    }
+
     wayChosen(playerID, nextPositions, resultIndex, richedNextCase) {
+
+        const currentPlayer = this.game.players[playerID];
+        if (this.animator.currentAnimations[currentPlayer.id] !== 'run') {
+            this.animator.playFade(currentPlayer.id, 'run', 0.2);
+        }
+
         this.gameObjects.arrows.forEach((arrow) => {
             this.scene.remove(arrow);
         });
         this.gameObjects.arrows = [];
         const nextPos = nextPositions[resultIndex];
-        const currentPlayer = this.game.players[playerID];
         const currentCharacter = this.characters[playerID];
         const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
         const nextCasePos = nextCase.mesh.position;

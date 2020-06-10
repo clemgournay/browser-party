@@ -11,6 +11,7 @@ module.exports = function (server) {
     this.players = {};
     this.messages = [];
     this.playerOrder = [];
+    this.avatarsNb = 15;
 
     this.findInArray = (arr, key, value) => {
         let i = 0, found = false;
@@ -55,14 +56,13 @@ module.exports = function (server) {
             const name = data._query.name;
             const position = data._query.position.split(',');
             console.log(position)
-            const characterID = data._query.characterID;
             const controlID = uuid.v1();
 
             this.players[id] = {
                 socketID: socket.id,
                 name: name,
+                avatar: Math.floor(Math.random() + m-
                 position: {block: parseFloat(position[0]), way: parseFloat(position[1]), case: parseFloat(position[2])},
-                characterID: characterID,
                 controlID: controlID
             };
 

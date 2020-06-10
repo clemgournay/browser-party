@@ -10,10 +10,6 @@ import { UI } from './UI.js';
 class Game {
 
     constructor () {
-        this.characters = {
-            'char1': null,
-            'char2': null
-        };
         this.board = new Board(this);
         this.mainPlayer = new MainPlayer(this);
         this.UI = new UI(this);
@@ -53,22 +49,25 @@ class Game {
         this.board.showDice();
     }
 
-    getRandomCharacter() {
-        const index = Math.floor(Math.random() + Object.keys(this.characters).length - 1);
-        return Object.keys(this.characters)[index]; 
-    }
-
     setPlayers(playerData) {
         this.playerOrder = playerData.order;
         //console.log('[PLAYERS SERVER]', players);
         for (let id in playerData.players) {
             const player = playerData.players[id];
-            if (id !== this.mainPlayer.id) {
-                this.newPlayer(id, player);
-            } else {
-                console.log(this.mainPlayer, id)
+            
+            if (id === this.mainPlayer.id) {
                 this.players[id] = this.mainPlayer;
+                this.board.newCharacter(this.players[id]);
+            } else {
+                this.newPlayer(id, player);
             }
+        }
+
+        console.log(this.players);
+        console.log(this.playerOrder)
+        for(let i = 0; i < this.playerOrder.length; i++) {
+            console.log(this.playerOrder[i])
+            this.players[this.playerOrder[i]].order = i;
         }
         console.log(this.playerOrder)
         const currPlayerID = this.playerOrder[this.playerTurn];
@@ -82,7 +81,6 @@ class Game {
         this.players[id] = new Player(this, player.name);
         this.players[id].id = id;
         this.players[id].position = player.position;
-        this.players[id].characterID = player.characterID;
         this.board.newCharacter(this.players[id]);
     }
 
@@ -97,6 +95,10 @@ class Game {
 
     mainPlayerHitDice(score) {
         this.sync.mainPlayerHitDice(score);
+    }
+
+    mainPlayerWayChose(way) {
+        this.sync.mainPlayerWayChose(way);
     }
 
 

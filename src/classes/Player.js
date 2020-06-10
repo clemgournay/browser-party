@@ -4,7 +4,6 @@ class Player {
         this.game = game;
         this.name = (name) ? name : 'Unkown';
         this.id = new Date().getTime();
-        this.characterID = this.game.getRandomCharacter();
         this.position = {block: 0, way: 0, case: 0};
         this.prevPosition = JSON.parse(JSON.stringify(this.position));
         this.stars = 0;

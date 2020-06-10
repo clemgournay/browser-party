@@ -8,7 +8,6 @@ class Sync {
         this.playerID = null;
         this.playername = null;
         this.position = null;
-        this.characterID = null;
         this.controlID = null;
         this.socket = null;
     }
@@ -55,6 +54,10 @@ class Sync {
             this.game.board.playerDiceHit(e.id, e.score);
         });
 
+        this.socket.on('way chosen', (e) => {
+            this.game.board.playerWayChosen(e.id, e.way);
+        })
+
         this.socket.on('player left', (e) => {
             console.log('player left: ' + e.id);
             this.game.removePlayer(e.id);
@@ -65,6 +68,10 @@ class Sync {
 
     mainPlayerHitDice(score) {
         if (this.socket) this.socket.emit('hit dice', score);
+    }
+    
+    mainPlayerWayChose(way) {
+        if (this.socket) this.socket.emit('way chose', way);
     }
 
 }
