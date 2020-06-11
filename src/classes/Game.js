@@ -32,7 +32,6 @@ class Game {
                 this.setPlayers(players);
                 this.board.build();
                 this.update();
-                this.start();
                 this.chat.connect();
             });
         });
@@ -49,34 +48,26 @@ class Game {
         this.board.showDice();
     }
 
-    setPlayers(playerData) {
-        this.playerOrder = playerData.order;
-        //console.log('[PLAYERS SERVER]', players);
-        for (let id in playerData.players) {
-            const player = playerData.players[id];
-            
-            if (id === this.mainPlayer.id) {
-                this.players[id] = this.mainPlayer;
-                this.board.newCharacter(this.mainPlayer);
-            } else {
-                this.newPlayer(id, player);
+    setPlayers(players) {
+        for (let id in players) {
+            this.newPlayer(id, players[id]);
+            if (players[id].order === 0) {
+                this.currentPlayer = this.players[id];
+                this.board.currentCharacter = this.board.characters[id];
             }
         }
-
-        for(let i = 0; i < this.playerOrder.length; i++) {
-            this.players[this.playerOrder[i]].order = i;
-        }
-        const currPlayerID = this.playerOrder[this.playerTurn];
-        this.players[currPlayerID].myTurn = true;
-        this.currentPlayer = this.players[currPlayerID];
         console.log('[PLAYERS]', this.players);
         console.log('[CURRENT PLAYER]', this.currentPlayer);
+        console.log('[CURRENT CHARACTER]', this.board.currentCharacter);
+        this.start();
     }
 
     newPlayer(id, player) {
-        this.players[id] = new Player(this, player.name);
+        if (id === this.mainPlayer.id) this.players[id] = this.mainPlayer;
+        else this.players[id] = new Player(this, player.name);
         this.players[id].id = id;
         this.players[id].position = player.position;
+        this.players[id].order = player.order;
         this.board.newCharacter(this.players[id]);
     }
 

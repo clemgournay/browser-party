@@ -23,8 +23,8 @@ class Sync {
             query: 'id=' + this.playerID + '&name=' + this.playername + '&position=' + this.position.block + ',' + this.position.way + ',' + this.position.case + '&rotation=' + this.rotation + '&characterID=' + this.characterID 
         });
 
-        this.socket.on('players', (playerData) => {
-            callback(playerData);
+        this.socket.on('players', (players) => {
+            callback(players);
         });
 
         this.socket.on('controlID', (controlID) => {

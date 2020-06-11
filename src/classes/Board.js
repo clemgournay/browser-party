@@ -30,6 +30,7 @@ class Board {
         this.redCaseValue = 0;
         this.enteredInBoard = false;
         this.nextAction = null;
+        this.currentCharacter = null;
     }
 
     load(callback) {
@@ -169,8 +170,6 @@ class Board {
         ];
         const geo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
         this.gameObjects.dice = new THREE.Mesh(geo, materials);
-        const charPos = this.mainCharacter.position.clone();
-        this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
         this.scene.add(this.gameObjects.dice);
     }
 
@@ -189,18 +188,14 @@ class Board {
         this.animator.addAnimation(player.id, 'jump', 3, 0, false);
 
         character.scale.set(0.0045, 0.0045, 0.0045);
-        const pos = player.position;
-        //const case = this.cases[pos.block][pos.way][pos.case].position;
-        const offset = player.order * 0.6;
-        console.log(player);
-        character.position.set(10.4, 0.7, -10);
-        if (!isMainPlayer) character.position.set(10.6, 0.7, -10);
+        const offset = player.order * 0.4;
+        character.position.set(10.4 + offset, 0.7, -10);
         const nextPos = this.getNextCases(player)[0];
         const casePos = this.cases[nextPos.block][nextPos.way][nextPos.case].position;
         const lookPos = new THREE.Vector3(casePos.x, casePos.y+0.1, casePos.z);
         character.lookAt(lookPos);
         character.name = player.id;
-
+    
         this.characters[player.id] = character;
         if (isMainPlayer) {
             this.mainCharacter = character;
@@ -230,7 +225,7 @@ class Board {
         let scale = {x: 0, y: 0, z: 0}
         const scaleAnim = new TWEEN.Tween(scale).to({x: 1, y: 1, z: 1}, 600);
         scaleAnim.onUpdate(() => {
-            currentCharacter.scale.set(scale.x, scale.y, scale.z);
+            arrow.scale.set(scale.x, scale.y, scale.z);
         });
     }
 
@@ -270,14 +265,14 @@ class Board {
             const pos = currentPlayer.position;
             const theCase = this.cases[pos.block][pos.way][pos.case];
             
-            const currentCharacter = this.characters[playerID];
+            const character = this.characters[playerID];
 
             if (index === 0) {
                 console.log('goal')
                 
                 this.animator.playFade(playerID, 'idle', 0.2);
                 theCase.action(() => {
-                    const charPos = currentCharacter.position.clone();
+                    const charPos = character.position.clone();
                     this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
                     currentPlayer.moveInProgress = false;
                     this.showDice();
@@ -386,7 +381,6 @@ class Board {
         });
         this.gameObjects.arrows = [];
         const nextPos = nextPositions[resultIndex];
-        const currentCharacter = this.characters[playerID];
         const nextCase = this.cases[nextPos.block][nextPos.way][nextPos.case];
         const nextCasePos = nextCase.mesh.position;
 
@@ -421,7 +415,7 @@ class Board {
             let angle = ab.angleTo(bc)
             if (resultIndex === 0) angle = -angle;
             if (angle !== 0) {
-                this.rotateCharacter(currentCharacter, angle);
+                this.rotateCharacter(this.currentCharacter, angle);
             }
         }
     }
@@ -437,10 +431,11 @@ class Board {
     }
 
     showDice() {
-        const currentPlayer = this.game.currentPlayer;
-        const currentCharacter = this.characters[currentPlayer.id];
+        
+        console.log(this.mainCharacter.position)
+        this.gameObjects.dice.position.set(this.mainCharacter.position.x, 10, this.mainCharacter.position.z);
         let position = this.gameObjects.dice.position.clone();
-        const anim = new TWEEN.Tween(position).to({x: position.x, y: currentCharacter.position.y+1.1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
+        const anim = new TWEEN.Tween(position).to({x: position.x, y: this.currentCharacter.position.y+1.1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
         anim.onUpdate(() => {
             this.gameObjects.dice.position.set(position.x, position.y, position.z);
         });
@@ -490,17 +485,14 @@ class Board {
 
         const relativeCameraOffset = new THREE.Vector3(-150, 330, -250);
 
-        const currentPlayer = this.game.currentPlayer;
-        if (this.characters[currentPlayer.id]) {
-            const currentCharacter = this.characters[currentPlayer.id];
-            //const currentCharacter = this.characters[this.game.mainPlayer.id];
+        if (this.currentCharacter) {
 
-            const cameraOffset = relativeCameraOffset.applyMatrix4(currentCharacter.matrixWorld);
+            const cameraOffset = relativeCameraOffset.applyMatrix4(this.currentCharacter.matrixWorld);
 
             this.camera.position.x = cameraOffset.x;
             this.camera.position.y = cameraOffset.y;
             this.camera.position.z = cameraOffset.z;
-            this.camera.lookAt(currentCharacter.position);
+            this.camera.lookAt(this.currentCharacter.position);
         }
 
         this.animator.update(delta);
