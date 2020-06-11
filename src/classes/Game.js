@@ -20,19 +20,20 @@ class Game {
         this.chat = new Chat(this);
         
         this.players = {};
-        this.playerOrder = [];
-        this.playerTurn = 0;
+        this.currentPlayerID = null;
         this.currentPlayer = null;
     }
 
     init() {
         this.board.load(() => {
             this.UI.init();
-            this.sync.connect(this.mainPlayer, (players) => {
-                this.setPlayers(players);
-                this.board.build();
+            this.board.build();
+            this.sync.connect(this.mainPlayer, (playerData) => {
+                this.currentPlayerID = playerData.currentPlayerID;
+                this.setPlayers(playerData.players);
                 this.update();
                 this.chat.connect();
+                this.start();
             });
         });
     }
@@ -45,13 +46,22 @@ class Game {
     }
 
     start() {
+        this.UI.updatePlayersScore();
         this.board.showDice();
+    }
+
+    nextPlayerTurn(nextPlayerID) {
+        this.currentPlayerID = nextPlayerID;
+        this.currentPlayer = this.players[nextPlayerID];
+        this.board.currentCharacter = this.board.characters[nextPlayerID];
+        this.board.showDice();
+        this.UI.updatePlayersScore();
     }
 
     setPlayers(players) {
         for (let id in players) {
             this.newPlayer(id, players[id]);
-            if (players[id].order === 0) {
+            if (id === this.currentPlayerID) {
                 this.currentPlayer = this.players[id];
                 this.board.currentCharacter = this.board.characters[id];
             }
@@ -59,7 +69,6 @@ class Game {
         console.log('[PLAYERS]', this.players);
         console.log('[CURRENT PLAYER]', this.currentPlayer);
         console.log('[CURRENT CHARACTER]', this.board.currentCharacter);
-        this.start();
     }
 
     newPlayer(id, player) {
@@ -69,6 +78,7 @@ class Game {
         this.players[id].position = player.position;
         this.players[id].order = player.order;
         this.board.newCharacter(this.players[id]);
+        this.UI.createPlayerScore(this.players[id]);
     }
 
     movePlayer(id, position) {
@@ -86,6 +96,10 @@ class Game {
 
     mainPlayerWayChose(way) {
         this.sync.mainPlayerWayChose(way);
+    }
+
+    mainPlayerTurnOver() {
+        this.sync.mainPlayerTurnOver();
     }
 
 

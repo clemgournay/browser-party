@@ -74,13 +74,35 @@ html, body {
 }
 
 #ui .player-score {
-    display: inline-block;
+    position: absolute;
+    top: 5px;
+    display: block;
     width: 200px;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
     color: white;
     padding: 10px;
+    box-sizing: border-box;
+}
+
+#ui .player-score.order-0 {
+    right: 620px;
+}
+#ui .player-score.order-1 {
+    right: 415px;
+}
+#ui .player-score.order-2 {
+    right: 210px;
+}
+#ui .player-score.order-3 {
+    right: 5px;
+}
+#ui .player-score.main {
+    background: rgba(0, 255, 0, 0.5);
+}
+#ui .player-score.current {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 #ui #qr-code {

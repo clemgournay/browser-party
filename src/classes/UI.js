@@ -8,12 +8,7 @@ class UI {
 
     init () {
         this.showView(this.view);
-        this.createPlayersScore();
         this.events();
-    }
-
-    createPlayersScore() {
-        this.createPlayerScore(this.game.mainPlayer);
     }
 
     createPlayerScore(player) {
@@ -23,8 +18,18 @@ class UI {
         this.updatePlayerScore(player);
     }
 
+    updatePlayersScore() {
+        for (let id in this.game.players) {
+            this.updatePlayerScore(this.game.players[id]);
+        }
+    }
+
     updatePlayerScore(player) {
         const $dom = $('.player-score[data-id="' + player.id + '"]');
+        $dom.addClass('order-' + player.order);
+        if (player.constructor.name === 'MainPlayer') $dom.addClass('main');
+        if (this.game.currentPlayer && this.game.currentPlayer.id === player.id) $dom.addClass('current');
+        else $dom.removeClass('current');
         $dom.find('.name').html(player.name);
         $dom.find('.stars .value').html(player.stars);
         $dom.find('.coins .value').html(player.coins);
@@ -46,7 +51,7 @@ class UI {
         $dom.find('.rank').html(rankStr);
     }
 
-    events () {
+    events() {
         $('.window .close').on('click', (e) => {
             $(e.target).parents('.window').fadeOut();
             this.app.room.controls.unlock();

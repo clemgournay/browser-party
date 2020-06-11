@@ -23,8 +23,12 @@ class Sync {
             query: 'id=' + this.playerID + '&name=' + this.playername + '&position=' + this.position.block + ',' + this.position.way + ',' + this.position.case + '&rotation=' + this.rotation + '&characterID=' + this.characterID 
         });
 
-        this.socket.on('players', (players) => {
-            callback(players);
+        this.socket.on('players', (playerData) => {
+            callback(playerData);
+        });
+
+        this.socket.on('room full', () => {
+            alert('Room is full');
         });
 
         this.socket.on('controlID', (controlID) => {
@@ -56,6 +60,10 @@ class Sync {
 
         this.socket.on('way chosen', (e) => {
             this.game.board.playerWayChosen(e.id, e.way);
+        });
+        
+        this.socket.on('next player turn', (nextPlayerID) => {
+            this.game.nextPlayerTurn(nextPlayerID);
         })
 
         this.socket.on('player left', (e) => {
@@ -72,6 +80,10 @@ class Sync {
     
     mainPlayerWayChose(way) {
         if (this.socket) this.socket.emit('way chose', way);
+    }
+
+    mainPlayerTurnOver() {
+        if (this.socket) this.socket.emit('player turn over');
     }
 
 }

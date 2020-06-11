@@ -77,10 +77,16 @@ class Board {
             });
 
             fbxLoader.load('./assets/models/Character.fbx', (obj) => {
-                this.models.characters.basic = obj;
+                this.models.characters.basic0 = obj;
+            });
+            fbxLoader.load('./assets/models/Character.fbx', (obj) => {
+                this.models.characters.basic1 = obj;
             });
             fbxLoader.load('./assets/models/Character.fbx', (obj) => {
                 this.models.characters.basic2 = obj;
+            });
+            fbxLoader.load('./assets/models/Character.fbx', (obj) => {
+                this.models.characters.basic3 = obj;
             });
 
             fbxLoader.load('./assets/models/Arrow.fbx', (obj) => {
@@ -176,7 +182,7 @@ class Board {
     newCharacter(player) {
 
         const isMainPlayer = (player.constructor.name === 'MainPlayer');
-        const character = isMainPlayer ? this.models.characters.basic : this.models.characters.basic2;
+        const character = this.models.characters['basic' + player.order];
         character.traverse((child) => {
             child.castShadows = true;
             child.receiveShadows = true;
@@ -272,10 +278,10 @@ class Board {
                 
                 this.animator.playFade(playerID, 'idle', 0.2);
                 theCase.action(() => {
-                    const charPos = character.position.clone();
-                    this.gameObjects.dice.position.set(charPos.x, 10, charPos.z);
                     currentPlayer.moveInProgress = false;
-                    this.showDice();
+                    if (this.game.currentPlayerID === this.game.mainPlayer.id) {
+                        this.game.mainPlayerTurnOver();
+                    }
                 });
             } else {
 
@@ -388,10 +394,10 @@ class Board {
             this.animator.playFade(playerID, 'run', 0.2);
         }
 
-        let position = currentCharacter.position.clone();
+        let position = this.currentCharacter.position.clone();
         const moveAnim = new TWEEN.Tween(position).to({x: nextCasePos.x, y: nextCasePos.y+0.1, z: nextCasePos.z}, 600);
         moveAnim.onUpdate(() => {
-            currentCharacter.position.set(position.x, position.y, position.z);
+            this.currentCharacter.position.set(position.x, position.y, position.z);
         });
         moveAnim.onComplete(() => {
             currentPlayer.updatePosition(nextPos);
@@ -432,15 +438,16 @@ class Board {
 
     showDice() {
         
-        console.log(this.mainCharacter.position)
-        this.gameObjects.dice.position.set(this.mainCharacter.position.x, 10, this.mainCharacter.position.z);
+        this.gameObjects.dice.position.set(this.currentCharacter.position.x, 10, this.currentCharacter.position.z);
         let position = this.gameObjects.dice.position.clone();
         const anim = new TWEEN.Tween(position).to({x: position.x, y: this.currentCharacter.position.y+1.1, z: position.z}, 1000).easing(TWEEN.Easing.Quadratic.Out);
         anim.onUpdate(() => {
             this.gameObjects.dice.position.set(position.x, position.y, position.z);
         });
         anim.onComplete(() => {
-            this.controls.setAction('validate', this.game.mainPlayer, this.game.mainPlayer.stopDice);
+            if (this.game.currentPlayerID === this.game.mainPlayer.id) {
+                this.controls.setAction('validate', this.game.mainPlayer, this.game.mainPlayer.stopDice);
+            }
             this.game.diceRolling = true;
         });
         anim.start();
