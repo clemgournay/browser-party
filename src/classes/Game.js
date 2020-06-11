@@ -25,6 +25,7 @@ class Game {
     }
 
     init() {
+        this.updateRank();
         this.board.load(() => {
             this.UI.init();
             this.board.build();
@@ -79,6 +80,34 @@ class Game {
         this.players[id].order = player.order;
         this.board.newCharacter(this.players[id]);
         this.UI.createPlayerScore(this.players[id]);
+    }
+
+    updateRank() {
+        const players = [];
+        for (let key in this.players) {
+            players.push(this.players[key]);
+        }
+        const ordered = players.sort((a, b) => {
+            if (a.stars < b.stars) {
+                return 1;
+            } else if (a.stars > b.stars) {
+                return -1;
+            } else {
+                if (a.coins < b.coins) {
+                    return 1;
+                }
+                else if (a.coins > b.coins) {
+                    return -1;
+                }
+                else {
+                    return 0;
+                }
+            }
+        });
+        ordered.forEach((player, index)=>{
+            player.rank = index + 1;
+            this.players[player.id].rank = index + 1;
+        });
     }
 
     movePlayer(id, position) {

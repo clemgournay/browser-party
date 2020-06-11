@@ -21,6 +21,7 @@ class Player {
             this.stars += 1;
             this.coins = this.coins - 100;
         }
+        this.game.updateRank();
     }
 
     updatePosition(nextPos) {
@@ -39,6 +40,7 @@ class Player {
 
     updateStars(value) {
         this.stars += value;
+        this.game.updateRank();
     }
 
 }
