@@ -32,10 +32,12 @@ class MessageSystem {
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
+            this.app.mainUserSelection('action1');
         });
         this.$dom.find('.controls .cancel').on('click', () => {
             this.action2();
             this.close();
+            this.app.mainUserSelection('action2');
         });
     }
 
@@ -56,6 +58,7 @@ class MessageSystem {
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
+            this.game.mainUserSelection('ok');
         });
     }
 
@@ -68,6 +71,18 @@ class MessageSystem {
         this.game.board.controls.removeAction('validate');
         this.game.board.controls.removeAction('down');
         this.game.board.controls.removeAction('up');
+    }
+
+    confirmAction(action) {
+        if (action === 'action1') {
+            this.action1();
+        } else if (action === 'action2') {
+            this.action2();
+        }
+    }
+
+    alertAction() {
+        this.action1();
     }
 
     nextChoice() {

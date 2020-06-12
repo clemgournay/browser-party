@@ -11,17 +11,17 @@ class Case {
     action (callback) {
         switch(this.type) {
             case 'blue':
-                this.game.mainPlayer.updateCoins(this.game.board.blueCaseValue);
+                this.game.currentPlayer.updateCoins(this.game.board.blueCaseValue);
                 callback();
                 break;
             case 'red':
-                this.game.mainPlayer.updateCoins(this.game.board.redCaseValue);
+                this.game.currentPlayer.updateCoins(this.game.board.redCaseValue);
                 callback();
                 break;
             case 'star':
-                if (this.game.mainPlayer.canBuyStars(1)) {
+                if (this.game.currentPlayer.canBuyStars(1)) {
                     this.game.messageSystem.confirm('Toad', 'Do you want to buy a star for ' + this.game.board.starPrice + ' coins ?', () => {
-                        this.game.mainPlayer.buyStars(1);
+                        this.game.currentPlayer.buyStars(1);
                         callback();
                     }, () => {
                         callback();

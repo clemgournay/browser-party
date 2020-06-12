@@ -81,6 +81,10 @@ module.exports = function (server) {
 
                 socket.emit('chat messages', this.messages);
 
+                socket.on('player selection', (data) => {
+                    socket.broadcast.to(roomID).emit('player selection made', {id: id, selection: data.selection, params: data.params});
+                });
+
                 socket.on('way chose', (way) => {
                     socket.broadcast.to(roomID).emit('way chosen', {id: id, way: way});
                 });

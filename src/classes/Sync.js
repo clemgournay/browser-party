@@ -64,7 +64,11 @@ class Sync {
         
         this.socket.on('next player turn', (nextPlayerID) => {
             this.game.nextPlayerTurn(nextPlayerID);
-        })
+        });
+
+        this.socket.on('player selection made', (e) => {
+            this.game.playerSelect(e.id, e.selection, e.params);
+        });
 
         this.socket.on('player left', (e) => {
             console.log('player left: ' + e.id);
@@ -84,6 +88,10 @@ class Sync {
 
     mainPlayerTurnOver() {
         if (this.socket) this.socket.emit('player turn over');
+    }
+
+    mainPlayerSelection(selection, params) {
+        if (this.socket) this.socket.emit('player selection', {selection: selection, params: params});
     }
 
 }

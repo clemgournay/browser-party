@@ -349,7 +349,7 @@ class Board {
             if (playerID === this.game.mainPlayer.id) {
                 this.choseWay(nextPositions, (resultIndex) => {
                     this.wayChosen(playerID, nextPositions, resultIndex, richedNextCase);
-                    this.game.mainPlayerWayChose(resultIndex);
+                    this.game.mainPlayerSelection('way-chose', {resultIndex: resultIndex});
                 });
             } else {
                 console.log('SYNC');

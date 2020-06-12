@@ -119,6 +119,20 @@ class Game {
         delete this.players[id];
     }
 
+    playerSelect(id, selection, params) {
+        switch (selection) {
+            case 'way-chose':
+                this.game.board.playerWayChosen(id, params.resultIndex);
+                break;
+            case 'confrim':
+                this.messageSystem.confirmAction(id, params.action);
+                break;
+            case 'alert':
+                this.messageSystem.alertAction(id);
+                break;
+        }
+    }
+
     mainPlayerHitDice(score) {
         this.sync.mainPlayerHitDice(score);
     }
@@ -129,6 +143,10 @@ class Game {
 
     mainPlayerTurnOver() {
         this.sync.mainPlayerTurnOver();
+    }
+
+    mainPlayerSelection(selection, params) {
+        this.sync.mainPlayerSelection(selection);
     }
 
 
