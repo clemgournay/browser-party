@@ -67,6 +67,7 @@ class Sync {
         });
 
         this.socket.on('player selection made', (e) => {
+            console.log('[SYNC] Player ' + e.id + ' made selection ' + e.selection + ' with params', e.params);
             this.game.playerSelect(e.id, e.selection, e.params);
         });
 
@@ -91,6 +92,7 @@ class Sync {
     }
 
     mainPlayerSelection(selection, params) {
+        console.log('[SYNC] SEND USER SELECTION', selection, params)
         if (this.socket) this.socket.emit('player selection', {selection: selection, params: params});
     }
 
