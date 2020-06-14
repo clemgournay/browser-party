@@ -445,6 +445,7 @@ class Board {
             this.gameObjects.dice.position.set(position.x, position.y, position.z);
         });
         anim.onComplete(() => {
+            console.log(this.game.currentPlayerID, this.game.mainPlayer.id)
             if (this.game.currentPlayerID === this.game.mainPlayer.id) {
                 this.controls.setAction('validate', this.game.mainPlayer, this.game.mainPlayer.stopDice);
             }

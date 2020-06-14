@@ -21,23 +21,25 @@ class MessageSystem {
         this.$dom.find('.text').html(this.message);
         $('#message-system .messages').append(this.$dom);
         this.show();
-        this.game.board.controls.setAction('down', this, this.nextChoice);
-        this.game.board.controls.setAction('up', this, this.prevChoice);
-        this.game.board.controls.setAction('validate', this, () => {
-            this.$dom.find('.btn.selected').click();
-        });
-        this.game.board.controls.setAction('cancel', this, () => {
-            this.$dom.find('.btn.cancel').click();
-        });
+        if (this.game.currentPlayerID === this.game.mainPlayer.id) {
+            this.game.board.controls.setAction('down', this, this.nextChoice);
+            this.game.board.controls.setAction('up', this, this.prevChoice);
+            this.game.board.controls.setAction('validate', this, () => {
+                this.$dom.find('.btn.selected').click();
+            });
+            this.game.board.controls.setAction('cancel', this, () => {
+                this.$dom.find('.btn.cancel').click();
+            });
+        }
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
-            this.app.mainUserSelection('action1');
+            this.game.mainPlayerSelection('confirm', {action: 'action1'});
         });
         this.$dom.find('.controls .cancel').on('click', () => {
             this.action2();
             this.close();
-            this.app.mainUserSelection('action2');
+            this.game.mainPlayerSelection('confirm', {action: 'action2'});
         });
     }
 
@@ -49,16 +51,18 @@ class MessageSystem {
         this.$dom.find('.text').html(this.message);
         $('#message-system .messages').append(this.$dom);
         this.show();
-        this.game.board.controls.setAction('validate', this, () => {
-            this.$dom.find('.btn.selected').click();
-        });
-        this.game.board.controls.setAction('cancel', this, () => {
-            this.$dom.find('.btn.ok').click();
-        });
+        if (this.game.currentPlayerID === this.game.mainPlayer.id) {
+            this.game.board.controls.setAction('validate', this, () => {
+                this.$dom.find('.btn.selected').click();
+            });
+            this.game.board.controls.setAction('cancel', this, () => {
+                this.$dom.find('.btn.ok').click();
+            });
+        }
         this.$dom.find('.controls .ok').on('click', () => {
             this.action1();
             this.close();
-            this.game.mainUserSelection('ok');
+            this.game.mainPlayerSelection('alert');
         });
     }
 
@@ -74,6 +78,7 @@ class MessageSystem {
     }
 
     confirmAction(action) {
+        console.log(action)
         if (action === 'action1') {
             this.action1();
         } else if (action === 'action2') {

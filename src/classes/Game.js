@@ -120,15 +120,16 @@ class Game {
     }
 
     playerSelect(id, selection, params) {
+        console.log(selection, params)
         switch (selection) {
             case 'way-chose':
                 this.game.board.playerWayChosen(id, params.resultIndex);
                 break;
-            case 'confrim':
-                this.messageSystem.confirmAction(id, params.action);
+            case 'confirm':
+                this.messageSystem.confirmAction(params.action);
                 break;
             case 'alert':
-                this.messageSystem.alertAction(id);
+                this.messageSystem.alertAction();
                 break;
         }
     }
@@ -146,7 +147,7 @@ class Game {
     }
 
     mainPlayerSelection(selection, params) {
-        this.sync.mainPlayerSelection(selection);
+        this.sync.mainPlayerSelection(selection, params);
     }
 
 

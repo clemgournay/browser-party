@@ -18,13 +18,6 @@ class MainPlayer extends Player {
         }
     }
 
-    buyStars(value) {
-        const price = value * this.game.board.starPrice;
-        this.coins -= price;
-        this.updateStars(value);
-        this.game.UI.updatePlayerScore(this);
-    }
-
  
 }
 

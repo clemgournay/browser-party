@@ -38,6 +38,13 @@ class Player {
         return (this.coins >= price);
     }
 
+    buyStars(value) {
+        const price = value * this.game.board.starPrice;
+        this.coins -= price;
+        this.updateStars(value);
+        this.game.UI.updatePlayerScore(this);
+    }
+
     updateStars(value) {
         this.stars += value;
         this.game.updateRank();
