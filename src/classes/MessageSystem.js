@@ -84,10 +84,12 @@ class MessageSystem {
         } else if (action === 'action2') {
             this.action2();
         }
+        this.close();
     }
 
     alertAction() {
         this.action1();
+        this.close();
     }
 
     nextChoice() {
